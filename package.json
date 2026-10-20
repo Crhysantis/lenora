@@ -1,0 +1,13 @@
+{
+  "name": "lenora",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Protótipo de leitura interativa e estúdio de autoria",
+  "scripts": {
+    "check": "node --check dist/core.js && node --check dist/app.js && node --check tests/core.test.cjs",
+    "test": "node --test tests/core.test.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
