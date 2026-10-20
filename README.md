@@ -6,9 +6,42 @@ Plataforma de publicação literária seriada para novos escritores, com intera�
 
 ## Estado deste repositório
 
-Documentação inicial consolidada. **A transferência do código-fonte do protótipo ainda está pendente**, pois o ambiente que contém os arquivos está indisponível. A renomeação da interface publicada para Lenora também está pendente. Um push neste repositório não atualiza automaticamente a hospedagem existente.
+O código do protótipo está neste repositório, reconstruído a partir da implementação e das decisões registradas na conversa. A identidade da interface é **Lenora**.
 
-## Implementado no protótipo publicado
+A reconstrução não foi recuperada byte a byte do ambiente anterior. A hospedagem antiga ainda usa a versão anterior: um push neste repositório **não atualiza automaticamente o site publicado**.
+
+## Executar localmente
+
+Não há dependências de aplicação ou etapa de compilação. Com Python 3, na raiz do repositório:
+
+```sh
+python3 -m http.server 8080 --directory dist
+```
+
+Abra http://localhost:8080. Use um servidor HTTP em vez de abrir os arquivos diretamente.
+
+Com Node.js 22 ou posterior:
+
+```sh
+npm run check
+npm test
+```
+
+Não é necessário executar npm install. A pasta `dist` pode ser servida por uma hospedagem estática. Não há backend para configurar.
+
+## Arquivos
+
+- `dist/index.html`: estrutura e identidade Lenora.
+- `dist/style.css`: interface responsiva, capas e microcena demonstrativa.
+- `dist/core.js`: dados padrão, validação, armazenamento e vínculos de texto.
+- `dist/app.js`: navegação, leitura, áudio, popup e editor.
+- `dist/icon.svg`: ícone da aplicação.
+- `tests/core.test.cjs`: testes com o runner nativo do Node.
+- `docs/QA.md`: verificações realizadas e roteiro de testes de interface.
+
+Dados antigos com prefixo `lumera-` são lidos como alternativa no mesmo domínio. Novas gravações usam `lenora-`. A mudança de domínio não transfere localStorage. Os arquivos de mídia continuam temporários e locais.
+
+## Implementado nesta reconstrução
 
 - Descoberta com busca e filtros, uma obra demonstrativa e duas capas conceituais.
 - Biblioteca, progresso e preferências locais.
@@ -58,19 +91,14 @@ Protótipo estático em HTML, CSS e JavaScript, sem framework. Rotas por hash, W
 
 Arquitetura alvo: aplicação web instalável, módulos de identidade/permissões, conteúdo editorial, mídia/interações, leitura, comunidade e administração. Banco para registros, armazenamento separado para mídia e permissões verificadas no servidor. Interações com vínculos estáveis e fichas de lore com revelação progressiva para evitar spoilers. Fornecedores, cotas e custos ainda precisam ser validados.
 
-## Validação realizada no protótipo
+## Validação desta reconstrução
 
-- Verificação sintática do JavaScript.
-- Navegação da descoberta ao capítulo.
-- Abertura, reprodução e fechamento da prévia de microcena.
-- Correção do conflito com a propriedade global window.top que impedia a inicialização.
+A sintaxe foi verificada no runtime JavaScript disponível. Passaram sete testes da lógica independente de interface: capítulo padrão, validação de vínculos, escape de HTML, vínculos sobrepostos, preferências, armazenamento legado e armazenamento bloqueado/corrompido.
 
-Ainda pendem testes completos em dispositivos, acessibilidade, popup automático e persistência. Verificação sintática não substitui testes funcionais.
+A interface desta reconstrução ainda precisa de testes no navegador. Consulte [docs/QA.md](docs/QA.md). Os testes de lógica não substituem verificação visual, áudio ou testes multiusuário.
 
 ## Próximos passos
 
-1. Recuperar e transferir o código-fonte exato do protótipo.
-2. Aplicar Lenora na interface, preservando dados locais existentes.
-3. Adicionar instruções de execução e verificação automática ao repositório.
-4. Evoluir múltiplas interações, vínculos estáveis, editor e persistência de mídia.
-5. Implementar autenticação, permissões e publicação real antes do piloto.
+1. Executar QA de interface e publicar a versão Lenora.
+2. Evoluir múltiplas interações, vínculos estáveis, editor e persistência de mídia.
+3. Implementar autenticação, permissões e publicação real antes do piloto.
