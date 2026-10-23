@@ -35,11 +35,13 @@ Não é necessário executar npm install. A pasta `dist` pode ser servida por um
 - `dist/style.css`: interface responsiva, capas e microcena demonstrativa.
 - `dist/core.js`: dados padrão, validação, armazenamento e vínculos de texto.
 - `dist/app.js`: navegação, leitura, áudio, popup e editor.
+- `dist/media.js`: validação e persistência local de arquivos em IndexedDB.
 - `dist/icon.svg`: ícone da aplicação.
-- `tests/core.test.cjs`: testes com o runner nativo do Node.
+- `tests/core.test.cjs` e `tests/media.test.cjs`: testes com o runner nativo do Node.
+- `tests/browser.cjs`: testes integrados de interface em Chromium.
 - `docs/QA.md`: verificações realizadas e roteiro de testes de interface.
 
-Dados antigos com prefixo `lumera-` são lidos como alternativa no mesmo domínio. Novas gravações usam `lenora-`. A mudança de domínio não transfere localStorage. Os arquivos de mídia continuam temporários e locais.
+Dados antigos com prefixo `lumera-` são lidos como alternativa no mesmo domínio. Novas gravações usam `lenora-`. A mudança de domínio não transfere localStorage. Os arquivos de mídia são locais e persistem no mesmo navegador por IndexedDB. URLs temporárias de sessões anteriores não podem ser recuperadas. Não há transferência automática entre domínios ou dispositivos.
 
 ## Implementado nesta reconstrução
 
@@ -50,11 +52,13 @@ Dados antigos com prefixo `lumera-` são lidos como alternativa no mesmo domíni
 - Microcena em prévia junto ao trecho, por mouse, foco ou toque, com reprodução, fechamento e ampliação.
 - Popup automático sugerido pelo autor; abertura e reprodução autorizadas separadamente pelo leitor.
 - Editor de texto simples, configuração de interações, rascunho e restauração da versão anterior.
-- Teste de arquivos próprios de áudio, imagem e vídeo de até 25 MB cada.
+- Arquivos próprios de áudio, imagem e vídeo de até 25 MB cada, preservados ao recarregar.
+- Substituição e remoção persistentes; falhas de gravação mantêm a mídia anterior.
+- Restauração de mídia antes de abrir o leitor, sem reproduzir automaticamente.
 
 ## Limitações atuais
 
-Não há autenticação, backend, comunidade multiusuário, pagamentos, geração de IA, PWA ou modo offline. O perfil é demonstrativo. Texto e preferências usam localStorage. Mídia usa URLs temporárias em memória e se perde ao recarregar. A microcena padrão é uma animação CSS, não vídeo gerado por IA.
+Não há autenticação, backend, comunidade multiusuário, pagamentos, geração de IA, PWA ou modo offline. O perfil é demonstrativo. Texto e preferências usam localStorage. Mídia usa IndexedDB, com URLs temporárias recriadas na abertura. Limpar dados do site, usar outro navegador ou a remoção automática de dados pelo navegador pode apagar os arquivos. Não há backup ou sincronização; mantenha os originais. Em caso de armazenamento bloqueado ou sem espaço, a operação de mídia falha com aviso, preservando o arquivo anterior. A microcena padrão é uma animação CSS, não vídeo gerado por IA.
 
 Há uma configuração de trilha/efeito/lore/microcena por rascunho. Os vínculos usam números de trechos e correspondência textual, ainda sem IDs estáveis. A paginação é por trecho, não pela altura da tela. O editor avançado HTML/CSS ainda não foi implementado.
 
@@ -91,14 +95,24 @@ Protótipo estático em HTML, CSS e JavaScript, sem framework. Rotas por hash, W
 
 Arquitetura alvo: aplicação web instalável, módulos de identidade/permissões, conteúdo editorial, mídia/interações, leitura, comunidade e administração. Banco para registros, armazenamento separado para mídia e permissões verificadas no servidor. Interações com vínculos estáveis e fichas de lore com revelação progressiva para evitar spoilers. Fornecedores, cotas e custos ainda precisam ser validados.
 
-## Validação desta reconstrução
+## Validação
 
-A sintaxe foi verificada no runtime JavaScript disponível. Passaram sete testes da lógica independente de interface: capítulo padrão, validação de vínculos, escape de HTML, vínculos sobrepostos, preferências, armazenamento legado e armazenamento bloqueado/corrompido.
+A inspeção da base `6ff99c5` confirmou que o núcleo já existia em `dist`: descoberta, biblioteca, leitura, estúdio e microcenas. A execução de CI dessa base passou em 20/10/2026, incluindo sete cenários de navegador. A documentação anterior ainda indicava esses testes como pendentes.
 
-A interface desta reconstrução ainda precisa de testes no navegador. Consulte [docs/QA.md](docs/QA.md). Os testes de lógica não substituem verificação visual, áudio ou testes multiusuário.
+A evolução mantém essa arquitetura e acrescenta persistência de mídia, sem recriar o aplicativo. `npm run check` verifica sintaxe; `npm test` executa dez testes de lógica. `npm run test:browser` executa onze cenários integrados em Chromium, incluindo mídia persistente e falhas de armazenamento. O workflow do GitHub instala Playwright e Chromium e guarda resultados e screenshots.
+
+Para executar a interface de testes localmente, instale o runner e seu navegador (dependências apenas de desenvolvimento):
+
+```sh
+npm install --no-save --package-lock=false playwright@1.56.1
+npx playwright install chromium
+npm run test:browser
+```
+
+Consulte [docs/QA.md](docs/QA.md) para a cobertura e as limitações.
 
 ## Próximos passos
 
-1. Executar QA de interface e publicar a versão Lenora.
-2. Evoluir múltiplas interações, vínculos estáveis, editor e persistência de mídia.
-3. Implementar autenticação, permissões e publicação real antes do piloto.
+1. Publicar a versão Lenora no ambiente de hospedagem escolhido.
+2. Evoluir múltiplas interações, vínculos estáveis e editor.
+3. Implementar autenticação, permissões, catálogo de obras/capítulos e publicação real antes do piloto.
