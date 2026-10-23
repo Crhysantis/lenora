@@ -128,15 +128,104 @@ const fs = require('node:fs/promises');
       await page.getByRole('button',{name:'Fechar microcena'}).tap();
       assert.equal(await page.locator('#scenePopup').count(),0);
     },{viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-    await scenario('image-upload-session-only',async(page)=>{
+    await scenario('image-upload-persistence-replacement-and-removal',async(page)=>{
       await page.goto(url+'#studio');
       await page.locator('#sceneUpload').setInputFiles({name:'scene.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100" fill="green"/></svg>')});
+      await visible(page.getByRole('status').filter({hasText:'Arquivo salvo neste navegador.'}));
+      await page.waitForFunction(()=>!document.querySelector('#sceneUpload').disabled);
       await page.getByRole('button',{name:'Salvar e visualizar ↗'}).click();
       await page.getByRole('button',{name:'✧ Ver microcena',exact:true}).click();
       await visible(page.getByRole('img',{name:'Ilustração enviada pelo autor'}));
       await page.reload();
       await page.getByRole('button',{name:'✧ Ver microcena',exact:true}).click();
+      const img=page.getByRole('img',{name:'Ilustração enviada pelo autor'});
+      await visible(img);
+      assert.ok(await img.evaluate(el=>el.complete&&el.naturalWidth===200));
+      await page.goto(url+'#studio');
+      assert.equal(await page.locator('#sceneName').textContent(),'scene.svg');
+      await page.locator('#sceneUpload').setInputFiles({name:'replacement.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100"><rect width="300" height="100" fill="blue"/></svg>')});
+      await visible(page.getByRole('status').filter({hasText:'Arquivo salvo neste navegador.'}));
+      await page.waitForFunction(()=>!document.querySelector('#sceneUpload').disabled);
+      await page.reload();
+      assert.equal(await page.locator('#sceneName').textContent(),'replacement.svg');
+      await page.locator('#sceneRemove').click();
+      await visible(page.getByRole('status').filter({hasText:'Arquivo removido deste navegador.'}));
+      await page.reload();
+      assert.equal(await page.locator('#sceneName').textContent(),'Demonstração padrão');
+      await page.goto(url+'#reader');
+      await page.getByRole('button',{name:'✧ Ver microcena',exact:true}).click();
       await visible(page.getByRole('button',{name:'▷ Reproduzir microcena'}));
+    });
+    await scenario('audio-files-survive-reload',async(page)=>{
+      await page.goto(url+'#studio');
+      // One second of valid PCM audio: verify actual browser decoding after restoration.
+      const wav=Buffer.alloc(44+16000);
+      wav.write('RIFF');wav.writeUInt32LE(wav.length-8,4);wav.write('WAVEfmt ',8);
+      wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);
+      wav.writeUInt32LE(8000,24);wav.writeUInt32LE(16000,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);
+      wav.write('data',36);wav.writeUInt32LE(16000,40);
+      for(const slot of ['track','effect']){
+        await page.locator('#'+slot+'Upload').setInputFiles({name:slot+'.wav',mimeType:'audio/wav',buffer:wav});
+        await visible(page.getByRole('status').filter({hasText:'Arquivo salvo neste navegador.'}));
+        await page.waitForFunction(()=>!document.querySelector('#'+slot+'Upload').disabled,slot);
+      }
+      await page.reload();
+      assert.equal(await page.locator('#trackName').textContent(),'track.wav');
+      assert.equal(await page.locator('#effectName').textContent(),'effect.wav');
+      await page.goto(url+'#reader');
+      await page.getByRole('button',{name:'♫ Ativar áudio'}).click();
+      await visible(page.getByRole('button',{name:'♫ Desativar áudio'}));
+      await page.getByRole('button',{name:'três badaladas: ouvir efeito'}).click();
+      await page.waitForTimeout(300);
+      assert.ok(!/Não foi possível|não suportado/.test(await page.locator('#toast').textContent()));
+    });
+    await scenario('video-survives-reload-without-autoplay',async(page)=>{
+      await page.goto(url+'#studio');
+      const bytes=await page.evaluate(async()=>{
+        const canvas=document.createElement('canvas');canvas.width=160;canvas.height=90;
+        const stream=canvas.captureStream(10),chunks=[];
+        const recorder=new MediaRecorder(stream,{mimeType:'video/webm'});
+        const done=new Promise(resolve=>{recorder.onstop=()=>resolve();});
+        recorder.ondataavailable=e=>chunks.push(e.data);recorder.start();
+        canvas.getContext('2d').fillRect(0,0,160,90);
+        await new Promise(resolve=>setTimeout(resolve,200));recorder.stop();await done;
+        stream.getTracks().forEach(track=>track.stop());
+        return Array.from(new Uint8Array(await new Blob(chunks).arrayBuffer()));
+      });
+      await page.locator('#sceneUpload').setInputFiles({name:'scene.webm',mimeType:'video/webm',buffer:Buffer.from(bytes)});
+      await page.waitForFunction(()=>!document.querySelector('#sceneUpload').disabled);
+      await page.getByRole('button',{name:'Salvar e visualizar ↗'}).click();
+      await page.reload();
+      await page.getByRole('button',{name:'✧ Ver microcena',exact:true}).click();
+      await page.waitForFunction(()=>document.querySelector('#sceneVideo')?.readyState>=1);
+      assert.ok(await page.locator('#sceneVideo').evaluate(video=>video.paused&&video.muted),'Restored video does not bypass consent');
+    });
+    await scenario('failed-media-replacement-and-removal-preserve-file',async(page)=>{
+      await page.goto(url+'#studio');
+      const file={name:'original.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"/>')};
+      await page.locator('#sceneUpload').setInputFiles(file);
+      await page.waitForFunction(()=>!document.querySelector('#sceneUpload').disabled);
+      await page.evaluate(()=>{
+        IDBObjectStore.prototype.put=function(){throw new DOMException('quota','QuotaExceededError');};
+        IDBObjectStore.prototype.delete=function(){throw new DOMException('denied','UnknownError');};
+      });
+      await page.locator('#sceneUpload').setInputFiles({...file,name:'replacement.svg'});
+      await visible(page.getByRole('status').filter({hasText:'Não foi possível salvar o arquivo.'}));
+      assert.equal(await page.locator('#sceneName').textContent(),'original.svg');
+      await page.locator('#sceneRemove').click();
+      await visible(page.getByRole('status').filter({hasText:'Não foi possível remover o arquivo.'}));
+      await page.reload();
+      assert.equal(await page.locator('#sceneName').textContent(),'original.svg');
+    });
+    await scenario('media-storage-denied-keeps-reading-usable',async(page,context)=>{
+      await context.addInitScript(()=>Object.defineProperty(window,'indexedDB',{get(){throw Error('denied');}}));
+      await page.goto(url+'#studio');
+      await visible(page.getByRole('alert').filter({hasText:'Não foi possível acessar os arquivos salvos'}));
+      await page.locator('#sceneUpload').setInputFiles({name:'scene.png',mimeType:'image/png',buffer:Buffer.from('image')});
+      await visible(page.getByRole('status').filter({hasText:'Não foi possível salvar o arquivo.'}));
+      assert.equal(await page.locator('#sceneName').textContent(),'Demonstração padrão');
+      await page.getByRole('button',{name:'Salvar e visualizar ↗'}).click();
+      await visible(page.getByRole('heading',{name:'A porta que lembrava'}));
     });
     await fs.writeFile('test-results/results.json',JSON.stringify(results,null,2));
     if(results.some(r=>r.status==='failed'))process.exitCode=1;

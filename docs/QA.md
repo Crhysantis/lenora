@@ -1,24 +1,43 @@
 # Validação e limites
 
-Esta versão foi reconstruída a partir do código e das decisões registrados na conversa. Não é uma cópia binária recuperada do ambiente anterior.
+## Base inspecionada
 
-## Verificado antes de enviar
+Commit `6ff99c5d67a821f3bb557bd049d10bfa1f2b44e5`, branch `main`. Havia somente essa branch e nenhum PR aberto na inspeção. O aplicativo já continha descoberta, busca/filtros, biblioteca, leitura/progresso, preferências, estúdio/rascunho, áudio e microcenas. Não foi reconstruído novamente.
 
-- Compilação sintática do JavaScript no runtime disponível.
-- Sete casos de teste da lógica independente de interface: capítulo padrão, validação dos vínculos, escape de HTML, vínculos sobrepostos, normalização de preferências, leitura de armazenamento legado e armazenamento bloqueado/corrompido.
-- Os mesmos testes foram incluídos para execução com o runner nativo do Node.
+A execução [39466057301](https://github.com/Crhysantis/lenora/actions/runs/39466057301) terminou com sucesso em 20/10/2026, incluindo os sete cenários de navegador originais. Os avisos anteriores de que não havia testes de interface estavam desatualizados.
 
-## Ainda necessário no navegador
+## Evolução
 
-1. Descoberta → leitura → estúdio → salvar e visualizar.
-2. Biblioteca e progresso após recarregar.
-3. Mouse, toque e teclado no marcador de microcena; Play/Pausa, fechar e ampliar.
-4. Autor sugere abertura automática; leitor autoriza; popup abre ao chegar ao trecho, sem repetição ao voltar.
-5. Sem autorização: popup não abre automaticamente e áudio não toca.
-6. Vídeo automático sem áudio autorizado permanece mudo.
-7. Ler sem interações remove marcadores, áudio e cenas.
-8. Trocar página, rota ou aba interrompe mídia.
-9. Validar popup em celular, com zoom e fonte ampliada; conferir preferência de redução de movimento.
-10. Enviar arquivos reais, testar formatos, remoção e perda esperada de mídia ao recarregar.
+Persistência dos três arquivos de autoria (trilha, efeito e imagem/vídeo de microcena) em IndexedDB. O aplicativo aguarda a restauração antes de renderizar a rota, recria as URLs de mídia e mantém reprodução condicionada ao consentimento existente. A interface aguarda a gravação antes de permitir prévia ou saída do estúdio. Substituições só trocam o arquivo ativo após o commit da transação; remoções seguem a mesma regra.
 
-A execução completa de interface desta reconstrução ainda não foi validada. Os testes de lógica não substituem QA visual, testes de áudio ou testes multiusuário.
+O formato do rascunho e as chaves de localStorage não foram alterados. Arquivos antigos que existiam apenas em memória não podem ser migrados. Não há novas dependências de aplicação nem backend.
+
+## Cobertura automatizada
+
+- `npm run check`: sintaxe dos módulos e do runner de navegador.
+- `npm test`: dez testes de lógica, incluindo os sete originais; validação de tipos, tamanho e arquivo vazio; IndexedDB indisponível; falha de commit após requisição de gravação.
+- `npm run test:browser`: onze cenários em Chromium, com resultados em `test-results/results.json` e screenshots de desktop/celular:
+  1. Navegação, busca/filtro e biblioteca persistente.
+  2. Microcena por mouse, reprodução, fechamento e Escape.
+  3. Validação, prévia, recarga e restauração de rascunho.
+  4. Consentimento de popup automático e ausência de repetição.
+  5. Leitura sem interações e desativação de áudio.
+  6. Popup por toque e limites de tela no celular.
+  7. Imagem: upload, recarga, substituição e remoção persistentes.
+  8. Trilha e efeito WAV restaurados e reproduzíveis.
+  9. Vídeo WebM restaurado, sem autoplay ou áudio não autorizado.
+  10. Falhas de substituição/remoção preservam o arquivo anterior, inclusive após recarga.
+  11. IndexedDB bloqueado: aviso visível, leitor e texto utilizáveis.
+
+O workflow `.github/workflows/check.yml` executa esses comandos em push e PR e retém evidências. A execução local dos dez testes de lógica passou. A instalação local do Chromium não foi possível neste ambiente; os cenários de interface desta alteração devem ser confirmados pelo CI antes de integrar.
+
+## Verificação manual restante
+
+- Safari/iOS e Firefox; formatos e codecs reais usados pelos autores.
+- Percepção de áudio, fones, tela cheia e troca de aba durante reprodução.
+- Zoom, fonte ampliada, teclado e preferência de redução de movimento em dispositivos reais.
+- Limites de armazenamento em dispositivos com pouco espaço.
+
+## Limites do produto
+
+Protótipo de uma obra/capítulo com dados locais, sem autenticação, sincronização, comunidade, pagamentos, PWA ou publicação multiusuário. Dados de mídia dependem do navegador e podem ser removidos ao limpar os dados do site ou por políticas de armazenamento. Mantenha os arquivos originais. Os testes não equivalem a validação multiusuário ou a todos os codecs e navegadores.

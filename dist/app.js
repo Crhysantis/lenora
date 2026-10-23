@@ -1,8 +1,11 @@
-(function startLenora(){
+(async function startLenora(){
 'use strict';
 const C=globalThis.LenoraCore, $=s=>document.querySelector(s), esc=C.escapeHTML;
 let backing;try{backing=localStorage;}catch{backing={getItem(){throw Error();},setItem(){throw Error();}};}
 const storage=C.createStorage(backing);
+let mediaBackend;try{mediaBackend=window.indexedDB;}catch{}
+const mediaStore=globalThis.LenoraMedia.createMediaStore(mediaBackend);
+let mediaBusy=false,mediaLoadFailed=false;
 let draft=C.validateDraft(storage.get('draft',C.DEFAULT_DRAFT)).draft||{...C.DEFAULT_DRAFT};
 let prefs=C.normalizePrefs(storage.get('prefs',C.DEFAULT_PREFS));
 let saved=Boolean(storage.get('library',false)),page=Math.max(0,Number(storage.get('progress',0))||0);
@@ -223,7 +226,8 @@ function settings(){
 }
 function studio(){
   $('#content').innerHTML=topbar()+`<div class="intro"><span class="section-label">ESTÚDIO DO AUTOR</span><h1>Dê vida às suas palavras.</h1><p class="muted">Escreva uma passagem. Escolha como ela será sentida.</p></div>
-  <p class="notice">Rascunho local. Arquivos enviados ficam apenas nesta sessão e não são enviados a um servidor.</p>
+  <p class="notice">Rascunho local. Áudio, imagens e vídeos ficam salvos neste navegador. Nada é enviado a um servidor. Limpar os dados do site também remove os arquivos.</p>
+  ${mediaLoadFailed?'<p class="notice" role="alert">Não foi possível acessar os arquivos salvos. O texto continua disponível; recarregue para tentar novamente.</p>':''}
   <form id="editorForm"><div class="studio-grid"><section class="panel"><h2>Seu capítulo</h2>
   <label for="title">Nome da obra</label><input id="title" name="title" maxlength="200" value="${esc(draft.title)}" required>
   <label for="chapter">Título do capítulo</label><input id="chapter" name="chapter" maxlength="200" value="${esc(draft.chapter)}" required>
@@ -256,19 +260,42 @@ function studio(){
     storage.set('previous',draft);draft=result.draft;dirty=false;studio();toast('Versão anterior restaurada.');
   };
   for(const type of ['track','effect','scene']){
-    $('#'+type+'Upload').onchange=e=>{
+    $('#'+type+'Upload').onchange=async e=>{
       const f=e.target.files[0];if(!f)return;
-      const allowed=type==='scene'?/^(video|image)\//:/^audio\//;
-      if(!allowed.test(f.type)||f.size>25*1024*1024){e.target.value='';return toast('Escolha um formato compatível de até 25 MB.');}
-      if(media[type])URL.revokeObjectURL(media[type].url);
-      media[type]={url:URL.createObjectURL(f),type:f.type,name:f.name};
-      $('#'+type+'Name').textContent=f.name;$('#'+type+'Remove').disabled=false;toast('Arquivo disponível nesta sessão.');
+      if(!globalThis.LenoraMedia.validFile(type,f)){e.target.value='';return toast('Escolha um formato compatível, não vazio, de até 25 MB.');}
+      if(mediaBusy){e.target.value='';return toast('Aguarde o arquivo terminar de salvar.');}
+      setMediaBusy(true);
+      try{
+        await mediaStore.put(type,f);
+        if(media[type])URL.revokeObjectURL(media[type].url);
+        media[type]={url:URL.createObjectURL(f),type:f.type,name:f.name};
+        if($('#'+type+'Name'))$('#'+type+'Name').textContent=f.name;
+        toast('Arquivo salvo neste navegador.');
+      }catch{toast('Não foi possível salvar o arquivo. A mídia anterior foi mantida. Verifique o espaço e as permissões do navegador.');}
+      finally{e.target.value='';setMediaBusy(false);}
     };
-    $('#'+type+'Remove').onclick=()=>{
-      if(media[type])URL.revokeObjectURL(media[type].url);
-      delete media[type];$('#'+type+'Upload').value='';$('#'+type+'Name').textContent='Demonstração padrão';$('#'+type+'Remove').disabled=true;
+    $('#'+type+'Remove').onclick=async()=>{
+      if(mediaBusy)return;
+      setMediaBusy(true);
+      try{
+        await mediaStore.remove(type);
+        if(media[type])URL.revokeObjectURL(media[type].url);
+        delete media[type];
+        if($('#'+type+'Name'))$('#'+type+'Name').textContent='Demonstração padrão';
+        toast('Arquivo removido deste navegador.');
+      }catch{toast('Não foi possível remover o arquivo. A mídia anterior foi mantida.');}
+      finally{setMediaBusy(false);}
     };
   }
+  setMediaBusy(mediaBusy);
+}
+function setMediaBusy(busy){
+  mediaBusy=busy;
+  for(const type of ['track','effect','scene']){
+    if($('#'+type+'Upload'))$('#'+type+'Upload').disabled=busy;
+    if($('#'+type+'Remove'))$('#'+type+'Remove').disabled=busy||!media[type];
+  }
+  for(const selector of ['#previewDraft','#editorForm button[type="submit"]'])if($(selector))$(selector).disabled=busy;
 }
 function uploadField(key,label,accept){
   return `<label for="${key}Upload">${label} · opcional</label><input id="${key}Upload" type="file" accept="${accept}"><div class="upload-status"><small id="${key}Name">${esc(media[key]?.name||'Demonstração padrão')}</small><button id="${key}Remove" type="button" ${media[key]?'':'disabled'}>Remover arquivo</button></div>`;
@@ -284,6 +311,7 @@ function renderRoute(){
   const requested=location.hash.slice(1);
   if(requested==='content'){ $('#content').focus(); return; }
   const next=['home','library','reader','studio'].includes(requested)?requested:'home';
+  if(routeName==='studio'&&mediaBusy&&next!=='studio'){history.replaceState(null,'','#studio');toast('Aguarde o arquivo terminar de salvar.');return;}
   if(routeName==='studio'&&dirty&&next!=='studio'&&!confirm('Sair sem salvar as alterações do texto?')){history.replaceState(null,'','#studio');return;}
   dirty=false;cleanupReader();if($('#modal').open)$('#modal').close();routeName=next;
   document.body.classList.remove('reader-night');
@@ -295,7 +323,10 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeScene(true);});
 document.addEventListener('pointerdown',e=>{if($('#scenePopup')&&!$('#scenePopup').contains(e.target)&&!$('#sceneTrigger')?.contains(e.target))closeScene(false);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){enabled=false;stopAll();closeScene(false);if($('#audioToggle'))$('#audioToggle').textContent='♫ Ativar áudio';}});
 window.addEventListener('scroll',positionScene,{passive:true});window.addEventListener('resize',positionScene);
-window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+window.addEventListener('beforeunload',e=>{if(dirty||mediaBusy){e.preventDefault();e.returnValue='';}});
+try{
+  for(const record of await mediaStore.load())media[record.slot]={url:URL.createObjectURL(record.blob),type:record.blob.type,name:record.name};
+}catch{mediaLoadFailed=true;}
 window.addEventListener('hashchange',renderRoute);
 renderRoute();
 if(storage.hasFailure())toast('Armazenamento indisponível ou dados inválidos. Usando a sessão atual.');
