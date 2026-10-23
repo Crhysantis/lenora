@@ -29,7 +29,7 @@ O formato do rascunho e as chaves de localStorage não foram alterados. Arquivos
   10. Falhas de substituição/remoção preservam o arquivo anterior, inclusive após recarga.
   11. IndexedDB bloqueado: aviso visível, leitor e texto utilizáveis.
 
-O workflow `.github/workflows/check.yml` executa esses comandos em push e PR e retém evidências. A execução local dos dez testes de lógica passou. A instalação local do Chromium não foi possível neste ambiente; os cenários de interface desta alteração devem ser confirmados pelo CI antes de integrar.
+O workflow `.github/workflows/check.yml` executa esses comandos em push e PR e retém evidências. A execução local dos dez testes de lógica passou. A instalação local do Chromium não foi possível neste ambiente; a execução de interface é feita pelo CI. Os resultados e evidências desta alteração estão nos checks do [PR #1](https://github.com/Crhysantis/lenora/pull/1).
 
 ## Verificação manual restante
 

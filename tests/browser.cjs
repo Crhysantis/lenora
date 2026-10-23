@@ -167,7 +167,7 @@ const fs = require('node:fs/promises');
       for(const slot of ['track','effect']){
         await page.locator('#'+slot+'Upload').setInputFiles({name:slot+'.wav',mimeType:'audio/wav',buffer:wav});
         await visible(page.getByRole('status').filter({hasText:'Arquivo salvo neste navegador.'}));
-        await page.waitForFunction(()=>!document.querySelector('#'+slot+'Upload').disabled,slot);
+        await page.waitForFunction(slot=>!document.querySelector('#'+slot+'Upload').disabled,slot);
       }
       await page.reload();
       assert.equal(await page.locator('#trackName').textContent(),'track.wav');
