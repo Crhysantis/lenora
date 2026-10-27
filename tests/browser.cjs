@@ -48,7 +48,10 @@ const fs = require('node:fs/promises');
       assert.match(await page.locator('.journey-passport h2').textContent(),/^10/);
       await page.screenshot({path:'test-results/world-journey.png',fullPage:true});
     });
-    await scenario('world-authoring-publication-and-progressive-lore',async(page)=>{
+    await scenario('world-authoring-publication-and-progressive-lore',async(page,context)=>{
+      const seed=require('../dist/world-core.js').clone(require('../dist/world-core.js').DEFAULT_WORLD);
+      seed.name='Mundo de teste';seed.chapters=[];seed.entities=seed.entities.slice(0,1);
+      await context.addInitScript(seed=>{if(!localStorage.getItem('lenora-world-editor'))localStorage.setItem('lenora-world-editor',JSON.stringify({draft:seed,published:seed,revision:0}));},seed);
       await page.goto(url+'#world-studio');
       for(let i=1;i<=2;i++){
         await page.locator('#chapterForm input[name="title"]').fill('Capítulo de teste '+i);
@@ -106,6 +109,36 @@ const fs = require('node:fs/promises');
       await visible(page.getByRole('dialog'));
       await page.getByRole('button',{name:'Fechar janela'}).tap();
     },{viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+    await scenario('ayiverni-prologue-to-chapter-one',async(page)=>{
+      await page.goto(url+'#chapter/chapter-1');
+      await visible(page.getByRole('heading',{name:'Essa etapa ainda está fechada.'}));
+      assert.equal(await page.locator('.world-story').count(),0);
+      await page.goto(url+'#home');
+      await page.getByRole('link',{name:'Ler a história',exact:true}).click();
+      await visible(page.getByRole('heading',{name:'Prólogo',exact:true}));
+      await visible(page.locator('.world-story').getByText(/Fragmento do Diário de Gran-Korr/));
+      await page.getByRole('button',{name:'Concluí a leitura · abrir descobertas'}).click();
+      await visible(page.getByRole('heading',{name:'O mundo, no seu horizonte.'}));
+      assert.equal(await page.locator('.world-card:not(.locked)').count(),10);
+      await page.locator('[data-entity="gladish"]').click();
+      assert.ok(!(await page.getByRole('dialog').textContent()).includes('assumir o comando'));
+      await page.getByRole('button',{name:'Fechar janela'}).click();
+      await page.getByRole('link',{name:'Continuar a história',exact:true}).click();
+      await visible(page.getByRole('heading',{name:'Capítulo 1',exact:true}));
+      await visible(page.locator('.world-story').getByText('Mas ela nunca mais seria.',{exact:true}));
+      await page.getByRole('button',{name:'Concluí a leitura · abrir descobertas'}).click();
+      await visible(page.getByRole('heading',{name:'O mundo, no seu horizonte.'}));
+      assert.equal(await page.locator('.world-card:not(.locked)').count(),15);
+      await page.locator('[data-entity="gladish"]').click();
+      await visible(page.getByRole('dialog').getByText(/escolhida pelos Gaari/));
+      await page.getByRole('button',{name:'Fechar janela'}).click();
+      await page.goto(url+'#journey');
+      assert.match(await page.locator('.journey-passport h2').textContent(),/^110/);
+      await page.reload();
+      assert.match(await page.locator('.journey-passport h2').textContent(),/^110/);
+      assert.equal(await page.locator('.chapter-path li').count(),2,'No future chapters added in this phase');
+      await page.screenshot({path:'test-results/ayiverni-first-journey.png',fullPage:true});
+    });
     await scenario('desktop-navigation-and-library',async(page)=>{
       await page.goto(url+'#reading-demo');
       await visible(page.getByRole('heading',{name:'Uma história espera por você.'}));

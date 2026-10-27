@@ -1,7 +1,8 @@
 'use strict';
 (function(){
   const KINDS={world:'Mundo',place:'Lugar',character:'Personagem',people:'Povo',relic:'Vestígio'};
-  const DEFAULT_WORLD={id:'ayiverni',name:'Ayîvernî',book:'Os Dias de Aço e Luz',subtitle:'A Herdeira e a Sombra',intro:'Há um mundo além das páginas.',chapters:[],entities:[{id:'ayiverni',kind:'world',title:'Ayîvernî',body:'O universo de Os Dias de Aço e Luz — A Herdeira e a Sombra. A leitura abre novas camadas desta experiência.',unlockChapter:0,layers:[]}]};
+  const content=typeof module!=='undefined'&&module.exports?require('./ayiverni.js'):globalThis.AyiverniContent;
+  const DEFAULT_WORLD=content.world;
   const clone=value=>JSON.parse(JSON.stringify(value));
   function httpsURL(value){
     if(!value)return '';
@@ -19,9 +20,9 @@
     const ids=new Set();world.chapters=[];world.entities=[];
     function unique(id){if(typeof id!=='string'||!/^[a-z0-9-]{1,80}$/.test(id)||ids.has(id))return false;ids.add(id);return true;}
     for(const c of input.chapters){
-      const url=httpsURL(c.url);
-      if(!unique(c.id)||typeof c.title!=='string'||!c.title.trim()||c.title.length>200||!url)return{error:'Cada capítulo precisa de título e link HTTPS válido, sem duplicatas.'};
-      world.chapters.push({id:c.id,title:c.title.trim(),url});
+      const url=httpsURL(c.url),text=typeof c.text==='string'?c.text:'';
+      if(!unique(c.id)||typeof c.title!=='string'||!c.title.trim()||c.title.length>200||url===null||(!url&&!text.trim())||text.length>200000)return{error:'Cada etapa precisa de título e texto ou link HTTPS válido, sem duplicatas.'};
+      world.chapters.push({id:c.id,title:c.title.trim(),url,text});
     }
     for(const e of input.entities){
       if(!unique(e.id)||!Object.hasOwn(KINDS,e.kind)||typeof e.title!=='string'||!e.title.trim()||e.title.length>200||typeof e.body!=='string'||!e.body.trim()||e.body.length>12000||!Number.isInteger(e.unlockChapter)||e.unlockChapter<0||e.unlockChapter>world.chapters.length||!Array.isArray(e.layers)||e.layers.length>100)return{error:'Revise título, descrição e capítulo de desbloqueio da descoberta.'};
@@ -40,6 +41,17 @@
     const visible=new Set(world.entities.filter(e=>e.unlockChapter<=completed.length).map(e=>e.id));
     const visited=Array.isArray(input?.visited)?[...new Set(input.visited.filter(id=>visible.has(id)))]:[];
     return{completed,visited};
+  }
+  function migrateInitialWorld(input){
+    const world=validateWorld(input).world;
+    if(!world)return clone(DEFAULT_WORLD);
+    const initial=DEFAULT_WORLD.entities[0];
+    const untouched=world.chapters.length===0&&world.entities.length===1&&JSON.stringify(world.entities[0])===JSON.stringify(initial)&&['name','book','subtitle','intro'].every(key=>world[key]===DEFAULT_WORLD[key]);
+    return untouched?clone(DEFAULT_WORLD):world;
+  }
+  function readableChapter(world,progress,id){
+    const p=normalizeProgress(world,progress),index=world.chapters.findIndex(c=>c.id===id);
+    return index>=0&&index<=p.completed.length?world.chapters[index]:null;
   }
   function discoverable(world,progress){
     const p=normalizeProgress(world,progress);
@@ -60,11 +72,11 @@
     const p=normalizeProgress(world,progress);
     return{points:p.completed.length*50+p.visited.length*10,badges:[
       {id:'arrival',name:'Primeiro contato',description:'Abra sua primeira descoberta.',earned:p.visited.length>=1},
-      {id:'reader',name:'A primeira página',description:'Conclua o primeiro capítulo.',earned:p.completed.length>=1},
+      {id:'reader',name:'Primeiras páginas',description:'Conclua uma etapa da leitura.',earned:p.completed.length>=1},
       {id:'explorer',name:'Além das páginas',description:'Explore cinco descobertas.',earned:p.visited.length>=5}
     ]};
   }
-  const api={KINDS,DEFAULT_WORLD,clone,httpsURL,validateWorld,normalizeProgress,discoverable,completeChapter,visit,rewards};
+  const api={KINDS,DEFAULT_WORLD,clone,httpsURL,validateWorld,migrateInitialWorld,readableChapter,normalizeProgress,discoverable,completeChapter,visit,rewards};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   else globalThis.LenoraWorld=api;
 })();

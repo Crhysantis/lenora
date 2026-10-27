@@ -2,9 +2,12 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const W=require('../dist/world-core.js');
 function fixture(){return{...W.clone(W.DEFAULT_WORLD),chapters:[{id:'ch-1',title:'Capítulo de teste 1',url:'https://example.org/1'},{id:'ch-2',title:'Capítulo de teste 2',url:'https://example.org/2'}],entities:[{id:'secret',kind:'character',title:'Nome reservado',body:'Revelação inicial',unlockChapter:1,layers:[{chapter:2,body:'Revelação posterior'}]}]};}
-test('seed has only a public introduction, with no invented chapter mapping',()=>{
-  assert.ok(W.validateWorld(W.DEFAULT_WORLD).world);assert.equal(W.DEFAULT_WORLD.chapters.length,0);
-  assert.equal(W.DEFAULT_WORLD.entities.length,1);assert.equal(W.DEFAULT_WORLD.entities[0].unlockChapter,0);
+test('approved scope contains only prologue and chapter 1 with one public introduction',()=>{
+  assert.ok(W.validateWorld(W.DEFAULT_WORLD).world);
+  assert.deepEqual(W.DEFAULT_WORLD.chapters.map(c=>c.id),['prologue','chapter-1']);
+  assert.equal(W.DEFAULT_WORLD.entities.length,15);
+  assert.equal(W.discoverable(W.DEFAULT_WORLD,{}).filter(e=>!e.locked).length,1);
+  assert.ok(W.DEFAULT_WORLD.chapters.every(c=>c.text.length>4000));
 });
 test('locked projections omit names, bodies and later revelations',()=>{
   const world=fixture(),locked=W.discoverable(world,{});
@@ -48,4 +51,35 @@ test('multiple layers survive validation and are revealed in chapter order',()=>
 test('author draft changes do not mutate the published snapshot',()=>{
   const published=fixture(),draft=W.clone(published);draft.entities[0].title='Nome editado';
   assert.equal(published.entities[0].title,'Nome reservado');
+});
+test('prologue reveals nine discoveries; chapter 1 reveals five and expands four profiles',()=>{
+  const world=W.DEFAULT_WORLD,p=W.completeChapter(world,{},'prologue').progress;
+  assert.equal(W.discoverable(world,p).filter(e=>!e.locked).length,10);
+  const early=W.discoverable(world,p).find(e=>e.id==='gladish');assert.deepEqual(early.layers,[]);
+  const done=W.completeChapter(world,p,'chapter-1').progress;
+  assert.equal(W.discoverable(world,done).filter(e=>!e.locked).length,15);
+  assert.equal(W.discoverable(world,done).filter(e=>e.layers.length).length,4);
+});
+test('historical uncertainty and reactor details remain scoped to their sources',()=>{
+  const world=W.DEFAULT_WORLD,p=W.completeChapter(world,{},'prologue').progress;
+  const early=W.discoverable(world,p);
+  assert.match(early.find(e=>e.id==='gran-korr').body,/falsificação/);
+  assert.match(early.find(e=>e.id==='eras').body,/relato ensinado/);
+  assert.ok(!JSON.stringify(early).includes('um metro e meio'));
+  const done=W.completeChapter(world,p,'chapter-1').progress;
+  assert.match(JSON.stringify(W.discoverable(world,done)),/um metro e meio/);
+});
+test('old untouched seed upgrades, but customized drafts are preserved',()=>{
+  const old={...W.clone(W.DEFAULT_WORLD),chapters:[],entities:[W.clone(W.DEFAULT_WORLD.entities[0])]};
+  assert.equal(W.migrateInitialWorld(old).chapters.length,2);
+  old.name='Meu rascunho';assert.equal(W.migrateInitialWorld(old).chapters.length,0);
+  assert.equal(W.migrateInitialWorld(old).name,'Meu rascunho');
+});
+test('direct chapter routes cannot skip the prologue and local text needs no external URL',()=>{
+  const world=W.DEFAULT_WORLD;
+  assert.equal(W.readableChapter(world,{},'chapter-1'),null);
+  assert.ok(W.readableChapter(world,{},'prologue').text);
+  const p=W.completeChapter(world,{},'prologue').progress;
+  assert.ok(W.readableChapter(world,p,'chapter-1').text);
+  assert.equal(W.readableChapter(world,p,'missing'),null);
 });

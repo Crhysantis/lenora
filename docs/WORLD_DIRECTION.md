@@ -60,3 +60,7 @@ Na versão com leitores reais, separar catálogo editorial privado das projeçõ
 ## Aquisição
 
 A referência indicada para redes é Crônicas dos Barros. O percurso e as propostas para Ayîvernî estão em [SOCIAL_DIRECTION.md](SOCIAL_DIRECTION.md), separando observação verificada e plano de teste.
+
+## Atualização do primeiro percurso
+
+O prólogo e o capítulo 1 foram fornecidos pelo autor e estão integrados em leitura local e descobertas. Esta fase não inclui os demais capítulos. A distribuição de fichas e as restrições de revelação estão em [CANON_FIRST_JOURNEY.md](CANON_FIRST_JOURNEY.md).

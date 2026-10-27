@@ -13,7 +13,11 @@ O mundo é a porta de entrada. A leitura abre novas camadas de personagens, luga
 - Gamificação inicial: 50 pontos por capítulo e 10 por descoberta explorada, sem repetir a recompensa pela mesma ação.
 - Dados e publicação locais, por navegador. Não há contas, permissões de autor ou sincronização.
 
-**Conteúdo inicial:** apenas uma apresentação pública do universo. Não foram inventados capítulos, links de leitura, personagens, lugares ou vínculos de revelação. Os capítulos e as fichas aprovadas precisam ser inseridos no estúdio a partir do cânone. Sem capítulos configurados, o portal indica essa preparação; não inventa um endereço para o livro.
+**Conteúdo desta fase:** prólogo e capítulo 1 fornecidos pelo autor, disponíveis no leitor do portal. Há uma apresentação pública, nove descobertas abertas após o prólogo e cinco novas após o capítulo 1, que também amplia quatro fichas anteriores. Os demais capítulos ficam fora desta etapa de desenvolvimento, mesmo havendo onze capítulos prontos informados pelo autor. Veja [o percurso canônico inicial](docs/CANON_FIRST_JOURNEY.md).
+
+O link oficial do capítulo 1 foi preservado. O prólogo pode ser lido no portal sem inventar um endereço externo. Abrir um capítulo posterior diretamente não pula a ordem de leitura na interface. As chaves de progresso continuam baseadas em IDs estáveis.
+
+Instalações com a configuração inicial antiga, sem edições, recebem o percurso novo. Mundos e rascunhos personalizados são preservados. A conclusão continua declarada pelo leitor; não há verificação externa da leitura.
 
 A futura personalização e a venda de experiências de imersão fazem parte da direção de produto; cobrança, planos e acesso pago ainda não foram implementados. Consulte [docs/WORLD_DIRECTION.md](docs/WORLD_DIRECTION.md).
 
@@ -48,6 +52,7 @@ Não é necessário executar npm install. A pasta `dist` pode ser servida por um
 - `dist/style.css`: interface responsiva, capas e microcena demonstrativa.
 - `dist/core.js`: dados padrão, validação, armazenamento e vínculos de texto.
 - `dist/app.js`: navegação e integração do portal com o leitor e editor anteriores.
+- `dist/ayiverni.js`: textos narrativos fornecidos pelo autor e fichas do primeiro percurso.
 - `dist/world-core.js`: validação, camadas de revelação, progressão e recompensas.
 - `dist/world-experience.js`: portal, atlas, jornada e estúdio de worldbuilding.
 - `dist/world.css`: direção visual, animações, responsividade e redução de movimento.
@@ -115,7 +120,7 @@ Arquitetura alvo: aplicação web instalável, módulos de identidade/permissõe
 
 A inspeção da base `6ff99c5` confirmou que o núcleo já existia em `dist`: descoberta, biblioteca, leitura, estúdio e microcenas. A execução de CI dessa base passou em 20/10/2026, incluindo sete cenários de navegador. A documentação anterior ainda indicava esses testes como pendentes.
 
-A evolução mantém essa arquitetura e acrescenta persistência de mídia, sem recriar o aplicativo. `npm run check` verifica sintaxe; `npm test` executa dezoito testes de lógica. `npm run test:browser` executa catorze cenários integrados em Chromium, incluindo autoria de mundo, revelação progressiva, visualização em celular e os fluxos de leitura/mídia preservados. O workflow do GitHub instala Playwright e Chromium e guarda resultados e screenshots.
+A evolução mantém essa arquitetura e acrescenta persistência de mídia, sem recriar o aplicativo. `npm run check` verifica sintaxe; `npm test` executa vinte e dois testes de lógica. `npm run test:browser` executa quinze cenários integrados em Chromium, incluindo autoria de mundo, revelação progressiva, visualização em celular e os fluxos de leitura/mídia preservados. O workflow do GitHub instala Playwright e Chromium e guarda resultados e screenshots.
 
 Para executar a interface de testes localmente, instale o runner e seu navegador (dependências apenas de desenvolvimento):
 
@@ -129,7 +134,7 @@ Consulte [docs/QA.md](docs/QA.md) para a cobertura e as limitações.
 
 ## Próximos passos
 
-1. Conectar o texto/link oficial e as fichas aprovadas do primeiro percurso de Ayîvernî.
+1. Validar com o autor a experiência do prólogo e do capítulo 1, já conectados.
 2. Integrar ilustrações, ambientes e mídia canônicos ao atlas.
 3. Implementar backend, autenticação, permissões e progressão no servidor antes do piloto multiusuário.
 4. Validar a experiência de Ayîvernî com leitores; depois evoluir personalização e monetização.

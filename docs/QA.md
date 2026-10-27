@@ -51,3 +51,7 @@ Dezoito testes de lógica passaram localmente. Oito testes novos cobrem a sement
 A suíte de navegador contém catorze cenários: onze fluxos anteriores e três novos para portal/jornada persistente, autoria/publicação/revelação progressiva e celular com redução de movimento. O teste móvel anterior foi ajustado para capturar a viewport, evitando que uma captura de página inteira altere a posição do marcador e feche o popup antes da reprodução. A execução da base anterior revelou essa instabilidade; não se presume que ela estivesse aprovada.
 
 Os testes de mundo usam nomes, links example.org e conteúdos fictícios exclusivamente no código de teste. O catálogo distribuído não contém esses dados nem revela cânone futuro.
+
+## Primeiro percurso canônico
+
+Somente o prólogo e o capítulo 1 fornecidos pelo autor foram inseridos. O leitor do portal permite completar a primeira etapa, abrir nove descobertas, ler a segunda e abrir mais cinco, além de quatro camadas novas. Oito testes anteriores de mundo foram mantidos; quatro casos adicionais verificam os números e conteúdos do percurso, incerteza histórica, migração sem sobrescrever personalização e leitura sequencial por URL. A suíte tem 22 testes de lógica e 15 cenários de navegador.

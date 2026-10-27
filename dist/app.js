@@ -311,15 +311,17 @@ function saveDraft(){
 function renderRoute(){
   const requested=location.hash.slice(1);
   if(requested==='content'){ $('#content').focus(); return; }
-  const next=['home','atlas','journey','world-studio','reading-demo','library','reader','studio'].includes(requested)?requested:'home';
+  const chapterId=requested.startsWith('chapter/')?requested.slice(8):null;
+  const next=chapterId?'chapter':['home','atlas','journey','world-studio','reading-demo','library','reader','studio'].includes(requested)?requested:'home';
   if(routeName==='world-studio'&&worldExperience.hasUnsaved()&&!confirm('Sair sem salvar as alterações do mundo?')){history.replaceState(null,'','#world-studio');return;}
   if(routeName==='studio'&&mediaBusy&&next!=='studio'){history.replaceState(null,'','#studio');toast('Aguarde o arquivo terminar de salvar.');return;}
   if(routeName==='studio'&&dirty&&next!=='studio'&&!confirm('Sair sem salvar as alterações do texto?')){history.replaceState(null,'','#studio');return;}
   dirty=false;cleanupReader();if($('#modal').open)$('#modal').close();routeName=next;
   document.body.classList.remove('reader-night');
-  document.body.classList.toggle('world-mode',['home','atlas','journey','world-studio'].includes(next));
-  document.querySelectorAll('[data-nav]').forEach(a=>{a.classList.toggle('active',a.dataset.nav===next);if(a.dataset.nav===next)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-  if(['home','atlas','journey','world-studio'].includes(next))worldExperience.render(next);
+  document.body.classList.toggle('world-mode',['home','atlas','journey','world-studio','chapter'].includes(next));
+  const activeRoute=next==='chapter'?'journey':next;
+  document.querySelectorAll('[data-nav]').forEach(a=>{a.classList.toggle('active',a.dataset.nav===activeRoute);if(a.dataset.nav===activeRoute)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  if(['home','atlas','journey','world-studio','chapter'].includes(next))worldExperience.render(next,chapterId);
   else if(next==='reader')reader();else if(next==='studio')studio();else if(next==='library')library();else home();
   if(next!=='reader')window.scrollTo(0,0);
 }
