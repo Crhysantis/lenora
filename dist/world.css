@@ -1,4 +1,5 @@
 /* Immersive world portal. The orbital artwork is abstract, not a canonical map. */
+.world-mode [hidden]{display:none!important}
 .world-mode{--paper:#0c1116;--ink:#eee9dd;--muted:#a4afaf;--line:#ffffff20;--green:#d5b778;--lime:#d5b778;background:var(--paper);color:var(--ink)}
 .world-mode .sidebar{top:0;bottom:auto;width:100%;height:82px;z-index:30;padding:0 5.5%;display:flex;flex-direction:row;align-items:center;justify-content:space-between;background:#0c1116dc;backdrop-filter:blur(18px);border:0;border-bottom:1px solid #ffffff14}
 .world-mode .brand{font-size:31px;color:#f5f0df}.world-mode .brand>span:first-child{font-size:30px;color:#d3b574}.world-mode .dot{color:#d3b574}.world-mode .sidebar nav{display:flex;gap:22px}.world-mode nav a{padding:9px 2px;gap:8px;font-size:14px;border-radius:0;color:#9da8aa}.world-mode nav a span{font-size:12px}.world-mode nav a.active{color:#e0c388;background:transparent;border-bottom:1px solid #d3b574}.world-mode .sidebar-bottom,.world-mode .eyebrow{display:none}

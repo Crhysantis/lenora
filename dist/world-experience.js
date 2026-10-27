@@ -44,6 +44,7 @@ globalThis.createWorldExperience=function({storage,toast,showModal,esc}){
   function openEntity(id){
     const entity=W.discoverable(published,progress).find(e=>e.id===id&&!e.locked);if(!entity)return;
     const already=progress.visited.includes(id);progress=W.visit(published,progress,id);persistProgress();
+    const marker=document.querySelector(`[data-entity="${id}"] .world-eyebrow`);if(marker)marker.textContent=W.KINDS[entity.kind]+' / EXPLORADO';
     showModal(entity.title,`<p class="world-eyebrow">${esc(W.KINDS[entity.kind])} · SEU CADERNO DE DESCOBERTAS</p><p class="lore-body">${esc(entity.body)}</p>${entity.layers.map(layer=>`<section class="lore-layer"><p class="world-eyebrow">APÓS O CAPÍTULO ${layer.chapter}</p><p class="lore-body">${esc(layer.body)}</p></section>`).join('')}<a class="world-button gold" href="#journey" id="backToStory">Voltar à história ↗</a>`);
     $('#backToStory').onclick=()=>$('#modal').close();
     if(!already)toast('Nova descoberta explorada · +10 pontos');

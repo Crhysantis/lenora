@@ -37,7 +37,7 @@ const fs = require('node:fs/promises');
     await scenario('world-portal-and-discovery',async(page)=>{
       await page.goto(url);
       await visible(page.getByRole('heading',{name:'Há um mundo além das páginas.'}));
-      await page.getByRole('link',{name:'Explorar o mundo ↗',exact:true}).click();
+      await page.getByRole('link',{name:'Explorar o mundo',exact:true}).click();
       await visible(page.getByRole('heading',{name:'O mundo, no seu horizonte.'}));
       await page.locator('[data-entity="ayiverni"]').click();
       await visible(page.getByRole('dialog'));
@@ -81,7 +81,7 @@ const fs = require('node:fs/promises');
       await page.goto(url+'#atlas');
       await page.locator('#worldSearch').fill('');
       await page.locator('[data-entity]').filter({hasText:'Personagem reservado'}).click();
-      await visible(page.getByText('Detalhe do primeiro capítulo',{exact:true}));
+      await visible(page.getByRole('dialog').getByText('Detalhe do primeiro capítulo',{exact:true}));
       assert.equal(await page.getByText('Revelação do segundo capítulo',{exact:true}).count(),0,'Later layer absent');
       await page.getByRole('button',{name:'Fechar janela'}).click();
       await page.locator('[data-entity]').filter({hasText:'Personagem reservado'}).click();
@@ -93,7 +93,7 @@ const fs = require('node:fs/promises');
       assert.match(await page.locator('.journey-passport h2').textContent(),/^110/);
       await page.goto(url+'#atlas');
       await page.locator('[data-entity]').filter({hasText:'Personagem reservado'}).click();
-      await visible(page.getByText('Revelação do segundo capítulo',{exact:true}));
+      await visible(page.getByRole('dialog').getByText('Revelação do segundo capítulo',{exact:true}));
     });
     await scenario('world-mobile-and-reduced-motion',async(page)=>{
       await page.goto(url);
