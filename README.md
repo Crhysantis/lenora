@@ -1,8 +1,21 @@
-# Lenora
+# Lenora — descubra mundos
 
-Histórias para ler, ouvir e sentir.
+Um software de worldbuilding e exploração imersiva, começando por **Ayîvernî**, universo de **Os Dias de Aço e Luz — A Herdeira e a Sombra**.
 
-Plataforma de publicação literária seriada para novos escritores, com interações audiovisuais opcionais e controle da experiência pelo leitor. Nome anterior do protótipo: Lumera.
+O mundo é a porta de entrada. A leitura abre novas camadas de personagens, lugares e histórias; o atlas e a jornada levam o leitor de volta ao livro. O leitor interativo anterior continua como laboratório de uma das ferramentas do produto.
+
+## Primeira versão da nova direção
+
+- `#home`: portal de Ayîvernî, com atmosfera animada e arte orbital abstrata, sem representar geografia canônica.
+- `#atlas`: descobertas, categorias e busca limitada ao que já está aberto. Nomes e descrições bloqueados não entram no HTML de cartões ou nos resultados.
+- `#journey`: caminho de leitura, links oficiais configuráveis, conclusão sequencial declarada pelo leitor e conquistas.
+- `#world-studio`: apresentação do mundo, capítulos, fichas e múltiplas revelações por capítulo. Rascunho e experiência publicada são separados.
+- Gamificação inicial: 50 pontos por capítulo e 10 por descoberta explorada, sem repetir a recompensa pela mesma ação.
+- Dados e publicação locais, por navegador. Não há contas, permissões de autor ou sincronização.
+
+**Conteúdo inicial:** apenas uma apresentação pública do universo. Não foram inventados capítulos, links de leitura, personagens, lugares ou vínculos de revelação. Os capítulos e as fichas aprovadas precisam ser inseridos no estúdio a partir do cânone. Sem capítulos configurados, o portal indica essa preparação; não inventa um endereço para o livro.
+
+A futura personalização e a venda de experiências de imersão fazem parte da direção de produto; cobrança, planos e acesso pago ainda não foram implementados. Consulte [docs/WORLD_DIRECTION.md](docs/WORLD_DIRECTION.md).
 
 ## Estado deste repositório
 
@@ -34,16 +47,19 @@ Não é necessário executar npm install. A pasta `dist` pode ser servida por um
 - `dist/index.html`: estrutura e identidade Lenora.
 - `dist/style.css`: interface responsiva, capas e microcena demonstrativa.
 - `dist/core.js`: dados padrão, validação, armazenamento e vínculos de texto.
-- `dist/app.js`: navegação, leitura, áudio, popup e editor.
+- `dist/app.js`: navegação e integração do portal com o leitor e editor anteriores.
+- `dist/world-core.js`: validação, camadas de revelação, progressão e recompensas.
+- `dist/world-experience.js`: portal, atlas, jornada e estúdio de worldbuilding.
+- `dist/world.css`: direção visual, animações, responsividade e redução de movimento.
 - `dist/media.js`: validação e persistência local de arquivos em IndexedDB.
 - `dist/icon.svg`: ícone da aplicação.
-- `tests/core.test.cjs` e `tests/media.test.cjs`: testes com o runner nativo do Node.
+- `tests/core.test.cjs`, `tests/media.test.cjs` e `tests/world.test.cjs`: testes com o runner nativo do Node.
 - `tests/browser.cjs`: testes integrados de interface em Chromium.
 - `docs/QA.md`: verificações realizadas e roteiro de testes de interface.
 
 Dados antigos com prefixo `lumera-` são lidos como alternativa no mesmo domínio. Novas gravações usam `lenora-`. A mudança de domínio não transfere localStorage. Os arquivos de mídia são locais e persistem no mesmo navegador por IndexedDB. URLs temporárias de sessões anteriores não podem ser recuperadas. Não há transferência automática entre domínios ou dispositivos.
 
-## Implementado nesta reconstrução
+## Laboratório de leitura preservado
 
 - Descoberta com busca e filtros, uma obra demonstrativa e duas capas conceituais.
 - Biblioteca, progresso e preferências locais.
@@ -60,7 +76,7 @@ Dados antigos com prefixo `lumera-` são lidos como alternativa no mesmo domíni
 
 Não há autenticação, backend, comunidade multiusuário, pagamentos, geração de IA, PWA ou modo offline. O perfil é demonstrativo. Texto e preferências usam localStorage. Mídia usa IndexedDB, com URLs temporárias recriadas na abertura. Limpar dados do site, usar outro navegador ou a remoção automática de dados pelo navegador pode apagar os arquivos. Não há backup ou sincronização; mantenha os originais. Em caso de armazenamento bloqueado ou sem espaço, a operação de mídia falha com aviso, preservando o arquivo anterior. A microcena padrão é uma animação CSS, não vídeo gerado por IA.
 
-Há uma configuração de trilha/efeito/lore/microcena por rascunho. Os vínculos usam números de trechos e correspondência textual, ainda sem IDs estáveis. A paginação é por trecho, não pela altura da tela. O editor avançado HTML/CSS ainda não foi implementado.
+No laboratório de texto anterior (`#reading-demo`, `#reader` e `#studio`), há uma configuração de trilha/efeito/lore/microcena por rascunho. Os vínculos usam números de trechos e correspondência textual, ainda sem IDs estáveis. A paginação é por trecho, não pela altura da tela. O editor avançado HTML/CSS ainda não foi implementado.
 
 ## Decisões de produto
 
@@ -99,7 +115,7 @@ Arquitetura alvo: aplicação web instalável, módulos de identidade/permissõe
 
 A inspeção da base `6ff99c5` confirmou que o núcleo já existia em `dist`: descoberta, biblioteca, leitura, estúdio e microcenas. A execução de CI dessa base passou em 20/10/2026, incluindo sete cenários de navegador. A documentação anterior ainda indicava esses testes como pendentes.
 
-A evolução mantém essa arquitetura e acrescenta persistência de mídia, sem recriar o aplicativo. `npm run check` verifica sintaxe; `npm test` executa dez testes de lógica. `npm run test:browser` executa onze cenários integrados em Chromium, incluindo mídia persistente e falhas de armazenamento. O workflow do GitHub instala Playwright e Chromium e guarda resultados e screenshots.
+A evolução mantém essa arquitetura e acrescenta persistência de mídia, sem recriar o aplicativo. `npm run check` verifica sintaxe; `npm test` executa dezoito testes de lógica. `npm run test:browser` executa catorze cenários integrados em Chromium, incluindo autoria de mundo, revelação progressiva, visualização em celular e os fluxos de leitura/mídia preservados. O workflow do GitHub instala Playwright e Chromium e guarda resultados e screenshots.
 
 Para executar a interface de testes localmente, instale o runner e seu navegador (dependências apenas de desenvolvimento):
 
@@ -113,6 +129,7 @@ Consulte [docs/QA.md](docs/QA.md) para a cobertura e as limitações.
 
 ## Próximos passos
 
-1. Publicar a versão Lenora no ambiente de hospedagem escolhido.
-2. Evoluir múltiplas interações, vínculos estáveis e editor.
-3. Implementar autenticação, permissões, catálogo de obras/capítulos e publicação real antes do piloto.
+1. Conectar o texto/link oficial e as fichas aprovadas do primeiro percurso de Ayîvernî.
+2. Integrar ilustrações, ambientes e mídia canônicos ao atlas.
+3. Implementar backend, autenticação, permissões e progressão no servidor antes do piloto multiusuário.
+4. Validar a experiência de Ayîvernî com leitores; depois evoluir personalização e monetização.

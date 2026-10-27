@@ -15,6 +15,7 @@ const sceneSeen=new Set(),effectSeen=new Set();
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),4000);}
 function save(key,value){const ok=storage.set(key,value);if(!ok)toast('Sem acesso ao armazenamento: alterações apenas nesta sessão.');return ok;}
 function showModal(title,html){$('#modalBody').innerHTML='<h2 id="modalTitle">'+esc(title)+'</h2>'+html;$('#modal').showModal();}
+const worldExperience=globalThis.createWorldExperience({storage,toast,showModal,esc});
 $('#closeModal').onclick=()=>$('#modal').close();
 $('#modal').addEventListener('click',e=>{if(e.target===$('#modal'))$('#modal').close();});
 function stopTrack(fade=false){
@@ -310,20 +311,23 @@ function saveDraft(){
 function renderRoute(){
   const requested=location.hash.slice(1);
   if(requested==='content'){ $('#content').focus(); return; }
-  const next=['home','library','reader','studio'].includes(requested)?requested:'home';
+  const next=['home','atlas','journey','world-studio','reading-demo','library','reader','studio'].includes(requested)?requested:'home';
+  if(routeName==='world-studio'&&worldExperience.hasUnsaved()&&!confirm('Sair sem salvar as alterações do mundo?')){history.replaceState(null,'','#world-studio');return;}
   if(routeName==='studio'&&mediaBusy&&next!=='studio'){history.replaceState(null,'','#studio');toast('Aguarde o arquivo terminar de salvar.');return;}
   if(routeName==='studio'&&dirty&&next!=='studio'&&!confirm('Sair sem salvar as alterações do texto?')){history.replaceState(null,'','#studio');return;}
   dirty=false;cleanupReader();if($('#modal').open)$('#modal').close();routeName=next;
   document.body.classList.remove('reader-night');
+  document.body.classList.toggle('world-mode',['home','atlas','journey','world-studio'].includes(next));
   document.querySelectorAll('[data-nav]').forEach(a=>{a.classList.toggle('active',a.dataset.nav===next);if(a.dataset.nav===next)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-  if(next==='reader')reader();else if(next==='studio')studio();else if(next==='library')library();else home();
+  if(['home','atlas','journey','world-studio'].includes(next))worldExperience.render(next);
+  else if(next==='reader')reader();else if(next==='studio')studio();else if(next==='library')library();else home();
   if(next!=='reader')window.scrollTo(0,0);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeScene(true);});
 document.addEventListener('pointerdown',e=>{if($('#scenePopup')&&!$('#scenePopup').contains(e.target)&&!$('#sceneTrigger')?.contains(e.target))closeScene(false);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){enabled=false;stopAll();closeScene(false);if($('#audioToggle'))$('#audioToggle').textContent='♫ Ativar áudio';}});
 window.addEventListener('scroll',positionScene,{passive:true});window.addEventListener('resize',positionScene);
-window.addEventListener('beforeunload',e=>{if(dirty||mediaBusy){e.preventDefault();e.returnValue='';}});
+window.addEventListener('beforeunload',e=>{if(dirty||mediaBusy||worldExperience.hasUnsaved()){e.preventDefault();e.returnValue='';}});
 try{
   for(const record of await mediaStore.load())media[record.slot]={url:URL.createObjectURL(record.blob),type:record.blob.type,name:record.name};
 }catch{mediaLoadFailed=true;}

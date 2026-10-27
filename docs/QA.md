@@ -41,3 +41,13 @@ O workflow `.github/workflows/check.yml` executa esses comandos em push e PR e r
 ## Limites do produto
 
 Protótipo de uma obra/capítulo com dados locais, sem autenticação, sincronização, comunidade, pagamentos, PWA ou publicação multiusuário. Dados de mídia dependem do navegador e podem ser removidos ao limpar os dados do site ou por políticas de armazenamento. Mantenha os arquivos originais. Os testes não equivalem a validação multiusuário ou a todos os codecs e navegadores.
+
+## Nova direção: mundos
+
+O portal padrão agora é Ayîvernî. O leitor anterior permanece em `#reading-demo`, `#reader` e `#studio`; seus dados e mídia foram preservados. O PR de mundos parte da branch do PR #1, sem integrar automaticamente nenhum deles à main.
+
+Dezoito testes de lógica passaram localmente. Oito testes novos cobrem a semente sem fatos inventados, omissão de revelações futuras, sequência e idempotência, visitas/pontos, progresso inválido, links/IDs/camadas inválidos, múltiplas camadas e separação de rascunho/publicação.
+
+A suíte de navegador contém catorze cenários: onze fluxos anteriores e três novos para portal/jornada persistente, autoria/publicação/revelação progressiva e celular com redução de movimento. O teste móvel anterior foi ajustado para capturar a viewport, evitando que uma captura de página inteira altere a posição do marcador e feche o popup antes da reprodução. A execução da base anterior revelou essa instabilidade; não se presume que ela estivesse aprovada.
+
+Os testes de mundo usam nomes, links example.org e conteúdos fictícios exclusivamente no código de teste. O catálogo distribuído não contém esses dados nem revela cânone futuro.
