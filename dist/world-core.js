@@ -3,14 +3,15 @@
   const KINDS={world:'Mundo',place:'Lugar',character:'Personagem',people:'Povo',relic:'Vestígio'};
   const content=typeof module!=='undefined'&&module.exports?require('./ayiverni.js'):globalThis.AyiverniContent;
   const DEFAULT_WORLD=content.world;
+  const S=typeof module!=='undefined'&&module.exports?require('./scene-core.js'):globalThis.LenoraScenes;
   const clone=value=>JSON.parse(JSON.stringify(value));
   function httpsURL(value){
     if(!value)return '';
     try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password?url.href:null;}catch{return null;}
   }
   function validateWorld(input){
-    if(!input||input.id!=='ayiverni')return{error:'Este piloto é dedicado a Ayîvernî.'};
-    const world={id:'ayiverni'};
+    if(!input||typeof input.id!=='string'||!/^[a-z0-9-]{1,80}$/.test(input.id))return{error:'Use um identificador válido para o mundo.'};
+    const world={id:input.id};
     for(const key of ['name','book','subtitle','intro']){
       if(typeof input[key]!=='string'||input[key].trim().length>500)return{error:'Revise a apresentação do mundo.'};
       world[key]=input[key].trim();
@@ -33,6 +34,8 @@
       }
       world.entities.push({id:e.id,kind:e.kind,title:e.title.trim(),body:e.body.trim(),unlockChapter:e.unlockChapter,layers:layers.sort((a,b)=>a.chapter-b.chapter)});
     }
+    const result=S.validateScenes(input.scenes===undefined?[]:input.scenes,world);if(result.error)return result;
+    world.scenes=result.scenes;
     return{world};
   }
   function normalizeProgress(world,input={}){
@@ -46,7 +49,11 @@
     const world=validateWorld(input).world;
     if(!world)return clone(DEFAULT_WORLD);
     const initial=DEFAULT_WORLD.entities[0];
-    const untouched=world.chapters.length===0&&world.entities.length===1&&JSON.stringify(world.entities[0])===JSON.stringify(initial)&&['name','book','subtitle','intro'].every(key=>world[key]===DEFAULT_WORLD[key]);
+    if(!Object.hasOwn(input,'scenes')){
+      const baseline=validateWorld(DEFAULT_WORLD).world;
+      if(JSON.stringify({...world,scenes:[]})===JSON.stringify({...baseline,scenes:[]}))return baseline;
+    }
+    const untouched=world.chapters.length===0&&world.entities.length===1&&JSON.stringify(world.entities[0])===JSON.stringify(initial)&&['id','name','book','subtitle','intro'].every(key=>world[key]===DEFAULT_WORLD[key]);
     return untouched?clone(DEFAULT_WORLD):world;
   }
   function readableChapter(world,progress,id){

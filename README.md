@@ -4,6 +4,18 @@ Um software de worldbuilding e exploração imersiva, começando por **Ayîvern�
 
 O mundo é a porta de entrada. A leitura abre novas camadas de personagens, lugares e histórias; o atlas e a jornada levam o leitor de volta ao livro. O leitor interativo anterior continua como laboratório de uma das ferramentas do produto.
 
+## Cenas imersivas e customização pelo autor
+
+O estúdio visual (`#scene-studio`) permite criar cenas com nome, convite narrativo, texto final, cenário base ou imagem própria, cores, névoa, movimento e som opcional. O autor adiciona pontos de exploração, os posiciona na prévia ou por coordenadas e os vincula a etapas de leitura e fichas. Imagens e áudio podem ser enviados pelo dispositivo (até 25 MB) ou ligados por HTTPS.
+
+`#scenes` apresenta os lugares publicados. `#scene/sahkiz-passarelas` é a primeira experiência ilustrativa de Sahkiz: arquitetura arbórea em SVG, elevadores em movimento, luz dos reatores e pontos narrativos. Dois pontos abrem após o prólogo; o terceiro, sobre a praça, depois do capítulo 1. A ilustração não é um mapa ou uma arte canônica aprovada. O autor pode substituí-la pela sua imagem.
+
+A cena é um registro editável, separado do código do renderizador. O mesmo modelo aceita outros lugares e identidades de mundo. Este é o primeiro núcleo reutilizável de criação de experiências; projetos multiusuário, permissões e venda de acesso ainda exigem backend.
+
+Arquivos próprios persistem em IndexedDB. Cada envio recebe uma referência nova, para que editar um rascunho não troque a mídia da versão publicada. Publicar atualiza somente o navegador atual. Nesta fase, arquivos sem vínculo após revisões podem permanecer armazenados: mantenha os originais e acompanhe o espaço do navegador. Som sempre depende de acionamento do leitor; o vento sintetizado padrão é uma demonstração. Trocar de página ou aba encerra a reprodução. Movimento pode ser pausado e respeita redução de movimento do dispositivo.
+
+Consulte [o modelo de autoria de cenas](docs/SCENE_AUTHORING.md).
+
 ## Primeira versão da nova direção
 
 - `#home`: portal de Ayîvernî, com atmosfera animada e arte orbital abstrata, sem representar geografia canônica.
@@ -55,6 +67,7 @@ Não é necessário executar npm install. A pasta `dist` pode ser servida por um
 - `dist/ayiverni.js`: textos narrativos fornecidos pelo autor e fichas do primeiro percurso.
 - `dist/world-core.js`: validação, camadas de revelação, progressão e recompensas.
 - `dist/world-experience.js`: portal, atlas, jornada e estúdio de worldbuilding.
+- `dist/scene-core.js`, `dist/scene-experience.js` e `dist/scene.css`: modelo, editor e leitura de cenas.
 - `dist/world.css`: direção visual, animações, responsividade e redução de movimento.
 - `dist/media.js`: validação e persistência local de arquivos em IndexedDB.
 - `dist/icon.svg`: ícone da aplicação.
@@ -120,7 +133,7 @@ Arquitetura alvo: aplicação web instalável, módulos de identidade/permissõe
 
 A inspeção da base `6ff99c5` confirmou que o núcleo já existia em `dist`: descoberta, biblioteca, leitura, estúdio e microcenas. A execução de CI dessa base passou em 20/10/2026, incluindo sete cenários de navegador. A documentação anterior ainda indicava esses testes como pendentes.
 
-A evolução mantém essa arquitetura e acrescenta persistência de mídia, sem recriar o aplicativo. `npm run check` verifica sintaxe; `npm test` executa vinte e dois testes de lógica. `npm run test:browser` executa quinze cenários integrados em Chromium, incluindo autoria de mundo, revelação progressiva, visualização em celular e os fluxos de leitura/mídia preservados. O workflow do GitHub instala Playwright e Chromium e guarda resultados e screenshots.
+A evolução mantém essa arquitetura e acrescenta persistência de mídia, sem recriar o aplicativo. `npm run check` verifica sintaxe; `npm test` executa trinta e dois testes de lógica. `npm run test:browser` executa dezoito cenários integrados em Chromium, incluindo autoria de mundo, revelação progressiva, visualização em celular e os fluxos de leitura/mídia preservados. O workflow do GitHub instala Playwright e Chromium e guarda resultados e screenshots.
 
 Para executar a interface de testes localmente, instale o runner e seu navegador (dependências apenas de desenvolvimento):
 

@@ -4,7 +4,7 @@
   "private": true,
   "description": "Descoberta imersiva de mundos e estúdio de worldbuilding — Ayîvernî",
   "scripts": {
-    "check": "node --check dist/core.js && node --check dist/media.js && node --check dist/ayiverni.js && node --check dist/world-core.js && node --check dist/world-experience.js && node --check dist/app.js && node --check tests/core.test.cjs && node --check tests/browser.cjs",
+    "check": "node --check dist/core.js && node --check dist/media.js && node --check dist/ayiverni.js && node --check dist/scene-core.js && node --check dist/scene-experience.js && node --check dist/world-core.js && node --check dist/world-experience.js && node --check dist/app.js && node --check tests/core.test.cjs && node --check tests/browser.cjs",
     "test": "node --test tests/*.test.cjs",
     "test:browser": "node tests/browser.cjs"
   },
