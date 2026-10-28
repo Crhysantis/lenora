@@ -17,6 +17,12 @@ test('unavailable or denied IndexedDB rejects without hanging',async()=>{
   await assert.rejects(createMediaStore().load());
   await assert.rejects(createMediaStore({open(){throw Error('denied');}}).load(),/denied/);
 });
+test('scene files have independent keys and retain type restrictions',()=>{
+  assert.equal(validFile('world-123-image',new Blob(['art'],{type:'image/png'})),true);
+  assert.equal(validFile('world-123-audio',new Blob(['sound'],{type:'audio/wav'})),true);
+  assert.equal(validFile('world-123-audio',new Blob(['art'],{type:'image/png'})),false);
+  assert.equal(validFile('world-../image',new Blob(['art'],{type:'image/png'})),false);
+});
 
 test('a successful write request followed by aborted transaction is reported as failure',async()=>{
   const indexedDB={open(){

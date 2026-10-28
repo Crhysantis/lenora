@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const W=require('../dist/world-core.js');
-function fixture(){return{...W.clone(W.DEFAULT_WORLD),chapters:[{id:'ch-1',title:'Capítulo de teste 1',url:'https://example.org/1'},{id:'ch-2',title:'Capítulo de teste 2',url:'https://example.org/2'}],entities:[{id:'secret',kind:'character',title:'Nome reservado',body:'Revelação inicial',unlockChapter:1,layers:[{chapter:2,body:'Revelação posterior'}]}]};}
+function fixture(){return{...W.clone(W.DEFAULT_WORLD),scenes:[],chapters:[{id:'ch-1',title:'Capítulo de teste 1',url:'https://example.org/1'},{id:'ch-2',title:'Capítulo de teste 2',url:'https://example.org/2'}],entities:[{id:'secret',kind:'character',title:'Nome reservado',body:'Revelação inicial',unlockChapter:1,layers:[{chapter:2,body:'Revelação posterior'}]}]};}
 test('approved scope contains only prologue and chapter 1 with one public introduction',()=>{
   assert.ok(W.validateWorld(W.DEFAULT_WORLD).world);
   assert.deepEqual(W.DEFAULT_WORLD.chapters.map(c=>c.id),['prologue','chapter-1']);
@@ -70,7 +70,7 @@ test('historical uncertainty and reactor details remain scoped to their sources'
   assert.match(JSON.stringify(W.discoverable(world,done)),/um metro e meio/);
 });
 test('old untouched seed upgrades, but customized drafts are preserved',()=>{
-  const old={...W.clone(W.DEFAULT_WORLD),chapters:[],entities:[W.clone(W.DEFAULT_WORLD.entities[0])]};
+  const old={...W.clone(W.DEFAULT_WORLD),chapters:[],entities:[W.clone(W.DEFAULT_WORLD.entities[0])]};delete old.scenes;
   assert.equal(W.migrateInitialWorld(old).chapters.length,2);
   old.name='Meu rascunho';assert.equal(W.migrateInitialWorld(old).chapters.length,0);
   assert.equal(W.migrateInitialWorld(old).name,'Meu rascunho');

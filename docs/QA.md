@@ -55,3 +55,7 @@ Os testes de mundo usam nomes, links example.org e conteúdos fictícios exclusi
 ## Primeiro percurso canônico
 
 Somente o prólogo e o capítulo 1 fornecidos pelo autor foram inseridos. O leitor do portal permite completar a primeira etapa, abrir nove descobertas, ler a segunda e abrir mais cinco, além de quatro camadas novas. Oito testes anteriores de mundo foram mantidos; quatro casos adicionais verificam os números e conteúdos do percurso, incerteza histórica, migração sem sobrescrever personalização e leitura sequencial por URL. A suíte tem 22 testes de lógica e 15 cenários de navegador.
+
+## Cenas customizáveis
+
+A suíte tem 32 testes de lógica e 18 cenários de navegador. Os casos novos verificam projeção de cenas/pontos por etapa, URLs/cores/posições e vínculos inválidos, modelo reutilizável, rascunho separado, migração sem sobrescrever personalizações e chaves próprias de mídia. No navegador, há percurso por cenas, edição/publicação e recarga de imagem própria, criação de outro lugar, celular/redução de movimento e som apenas após consentimento com encerramento ao navegar.

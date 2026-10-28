@@ -162,6 +162,53 @@ const data={
         "unlockChapter": 2,
         "layers": []
       }
+    ],
+    "scenes": [
+      {
+        "id": "sahkiz-passarelas",
+        "title": "Sahkiz · Entre os níveis",
+        "intro": "A cidade continua em movimento. Entre os troncos, o aço e o cristal, escolha para onde olhar. Cada detalhe abre uma aproximação com o lugar.",
+        "outro": "Os lugares guardam sinais de quem vive neles. Volte à história para acompanhar o que esse mundo exige de Gladish.",
+        "unlockChapter": 1,
+        "setting": "forest-city",
+        "accent": "#c7b57a",
+        "sky": "#10242d",
+        "fog": true,
+        "motion": true,
+        "imageUrl": "",
+        "audioUrl": "",
+        "imageKey": "",
+        "audioKey": "",
+        "hotspots": [
+          {
+            "id": "reator",
+            "title": "Uma luz constante",
+            "body": "O metal prateado e a luz verde dos reatores aparecem sob a janela da sala de aula. Examine a ficha para reunir o que a leitura já revelou.",
+            "x": 31,
+            "y": 65,
+            "unlockChapter": 1,
+            "entityId": "reatores"
+          },
+          {
+            "id": "passarelas",
+            "title": "Entre os troncos",
+            "body": "Sahkiz cresce ao redor de suas árvores. As paredes curvas de metal e cristal acompanham os troncos, e o vazio entre níveis se abre além da janela.",
+            "x": 64,
+            "y": 42,
+            "unlockChapter": 1,
+            "entityId": "sahkiz"
+          },
+          {
+            "id": "praca",
+            "title": "O lugar de uma escolha",
+            "body": "O mercado e a cerimônia dividem o espaço da praça. Pessoas e híbridos passam por ali, enquanto Gladish recebe o manto diante de uma das árvores mais antigas.",
+            "x": 57,
+            "y": 82,
+            "unlockChapter": 2,
+            "entityId": "praca-central"
+          }
+        ]
+      }
     ]
   },
   "source": "Textos do prólogo e do capítulo 1 fornecidos pelo autor nesta conversa. Navegação e chamada de publicação separadas do texto narrativo."

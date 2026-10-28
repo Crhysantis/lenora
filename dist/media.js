@@ -2,9 +2,11 @@
 (function(){
   const SLOTS=['track','effect','scene'];
   const MAX_SIZE=25*1024*1024;
+  const worldSlot=slot=>/^world-[a-z0-9-]{1,80}-(image|audio)$/.exec(slot);
   function validFile(slot,file){
-    return SLOTS.includes(slot)&&file instanceof Blob&&file.size>0&&file.size<=MAX_SIZE&&
-      (slot==='scene'?/^(video|image)\//:/^audio\//).test(file.type);
+    const world=worldSlot(slot),valid=SLOTS.includes(slot)||world;
+    const type=world?world[1]==='image'?/^image\//:/^audio\//:slot==='scene'?/^(video|image)\//:/^audio\//;
+    return Boolean(valid&&file instanceof Blob&&file.size>0&&file.size<=MAX_SIZE&&type.test(file.type));
   }
   function createMediaStore(indexedDB){
     let opening;
@@ -49,7 +51,7 @@
         await transaction('readwrite',store=>store.put({slot,blob:file,name:file.name||'Arquivo do autor'}));
       },
       async remove(slot){
-        if(!SLOTS.includes(slot))throw Error('Tipo de mídia inválido.');
+        if(!SLOTS.includes(slot)&&!worldSlot(slot))throw Error('Tipo de mídia inválido.');
         await transaction('readwrite',store=>store.delete(slot));
       }
     };
