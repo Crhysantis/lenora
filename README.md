@@ -4,17 +4,21 @@ Um software de worldbuilding e exploração imersiva, começando por **Ayîvern�
 
 O mundo é a porta de entrada. A leitura abre novas camadas de personagens, lugares e histórias; o atlas e a jornada levam o leitor de volta ao livro. O leitor interativo anterior continua como laboratório de uma das ferramentas do produto.
 
-## Cenas imersivas e customização pelo autor
+## Cenas, cinema e mapas em camadas
 
-O estúdio visual (`#scene-studio`) permite criar cenas com nome, convite narrativo, texto final, cenário base ou imagem própria, cores, névoa, movimento e som opcional. O autor adiciona pontos de exploração, os posiciona na prévia ou por coordenadas e os vincula a etapas de leitura e fichas. Imagens e áudio podem ser enviados pelo dispositivo (até 25 MB) ou ligados por HTTPS.
+O estúdio visual (`#scene-studio`) reúne autoria narrativa, imagens, áudio, pontos de exploração, sequências de imagens/vídeos e mapas ligados entre si. Rascunho e publicação continuam separados e locais ao navegador.
 
-`#scenes` apresenta os lugares publicados. `#scene/sahkiz-passarelas` é a primeira experiência ilustrativa de Sahkiz: arquitetura arbórea em SVG, elevadores em movimento, luz dos reatores e pontos narrativos. Dois pontos abrem após o prólogo; o terceiro, sobre a praça, depois do capítulo 1. A ilustração não é um mapa ou uma arte canônica aprovada. O autor pode substituí-la pela sua imagem.
+- **Montagem:** importe imagens e vídeos (até 25 MB por arquivo), ordene até 60 planos, escolha duração, início do trecho de vídeo e movimentos de câmera. Máximo de 10 minutos por sequência.
+- **Transições:** corte seco, dissolução, passagem pelo escuro, deslizamento e aproximação. O atalho stop motion ajusta as imagens para 8 quadros/s; as durações seguem editáveis.
+- **Saída:** prévia com pausa, reinício e busca; exportação WebM sem áudio, em tempo real, nos navegadores compatíveis. A trilha ambiental é independente.
+- **Posições:** a mesma cena pode aparecer na home, no início ou após um parágrafo do livro e nas fichas de qualquer categoria. O desbloqueio da leitura continua valendo em todos os locais.
+- **Mapas:** escolha “Mapa em camadas”, envie a imagem e posicione pontos. Um ponto pode abrir uma ficha e um mapa/cena de destino: primeiro clique mostra informações, segundo clique entra; há também botão explícito e caminho de volta.
 
-A cena é um registro editável, separado do código do renderizador. O mesmo modelo aceita outros lugares e identidades de mundo. Este é o primeiro núcleo reutilizável de criação de experiências; projetos multiusuário, permissões e venda de acesso ainda exigem backend.
+Ayîvernî inclui um estudo de câmera de Sahkiz e o percurso `Ayîvernî → Pentateeri → Sahkiz → Entre os níveis`. Os mapas são **esquemas de navegação**, sem fronteiras ou distâncias canônicas; o autor deve substituí-los por seus mapas. As imagens de Sahkiz derivam da ilustração existente, sem acrescentar acontecimentos ao cânone. Pentateeri abre depois do capítulo 1. Para entrar no mapa: `#scene/mapa-ayiverni`.
 
-Arquivos próprios persistem em IndexedDB. Cada envio recebe uma referência nova, para que editar um rascunho não troque a mídia da versão publicada. Publicar atualiza somente o navegador atual. Nesta fase, arquivos sem vínculo após revisões podem permanecer armazenados: mantenha os originais e acompanhe o espaço do navegador. Som sempre depende de acionamento do leitor; o vento sintetizado padrão é uma demonstração. Trocar de página ou aba encerra a reprodução. Movimento pode ser pausado e respeita redução de movimento do dispositivo.
+Uploads usam chaves independentes em IndexedDB: mudar o rascunho não substitui os arquivos publicados. Texto, montagem, mapas e mídias permanecem neste navegador. Publicar no estúdio aplica o snapshot local; compartilhar estas personalizações entre leitores exige persistência no servidor. Mantenha os originais: não há sincronização, backup ou limpeza automática de arquivos órfãos.
 
-Consulte [o modelo de autoria de cenas](docs/SCENE_AUTHORING.md).
+Consulte [o modelo de autoria](docs/SCENE_AUTHORING.md).
 
 ## Primeira versão da nova direção
 
@@ -37,7 +41,7 @@ A futura personalização e a venda de experiências de imersão fazem parte da 
 
 O código do protótipo está neste repositório, reconstruído a partir da implementação e das decisões registradas na conversa. A identidade da interface é **Lenora**.
 
-A reconstrução não foi recuperada byte a byte do ambiente anterior. A hospedagem antiga ainda usa a versão anterior: um push neste repositório **não atualiza automaticamente o site publicado**.
+A reconstrução não foi recuperada byte a byte do ambiente anterior. A publicação do Site é um passo separado: um push neste repositório **não atualiza automaticamente o site publicado**.
 
 ## Executar localmente
 
@@ -68,6 +72,8 @@ Não é necessário executar npm install. A pasta `dist` pode ser servida por um
 - `dist/world-core.js`: validação, camadas de revelação, progressão e recompensas.
 - `dist/world-experience.js`: portal, atlas, jornada e estúdio de worldbuilding.
 - `dist/scene-core.js`, `dist/scene-experience.js` e `dist/scene.css`: modelo, editor e leitura de cenas.
+- `dist/cinematic.js` e `dist/timeline-editor.js`: reprodução, montagem e exportação de sequências.
+- `dist/assets/`: estudos visuais ilustrativos de Sahkiz.
 - `dist/world.css`: direção visual, animações, responsividade e redução de movimento.
 - `dist/media.js`: validação e persistência local de arquivos em IndexedDB.
 - `dist/icon.svg`: ícone da aplicação.

@@ -2,10 +2,10 @@
 (function(){
   const SLOTS=['track','effect','scene'];
   const MAX_SIZE=25*1024*1024;
-  const worldSlot=slot=>/^world-[a-z0-9-]{1,80}-(image|audio)$/.exec(slot);
+  const worldSlot=slot=>/^world-[a-z0-9-]{1,80}-(image|audio|video)$/.exec(slot);
   function validFile(slot,file){
     const world=worldSlot(slot),valid=SLOTS.includes(slot)||world;
-    const type=world?world[1]==='image'?/^image\//:/^audio\//:slot==='scene'?/^(video|image)\//:/^audio\//;
+    const type=world?new RegExp('^'+world[1]+'/'):slot==='scene'?/^(video|image)\//:/^audio\//;
     return Boolean(valid&&file instanceof Blob&&file.size>0&&file.size<=MAX_SIZE&&type.test(file.type));
   }
   function createMediaStore(indexedDB){

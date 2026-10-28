@@ -1,8 +1,22 @@
 'use strict';
 (function(){
   const ID=/^[a-z0-9-]{1,80}$/;
-  const ASSET=/^world-[a-z0-9-]{1,80}-(image|audio)$/;
+  const ASSET=/^world-[a-z0-9-]{1,80}-(image|audio|video)$/;
   function url(value){if(!value)return '';try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password?u.href:null;}catch{return null;}}
+  const TRANSITIONS={cut:'Corte seco · stop motion',dissolve:'Dissolver',black:'Passagem pelo escuro',slide:'Deslizar',zoom:'Aproximar'};
+  function validateTimeline(input=[]){
+    if(!Array.isArray(input)||input.length>60)return{error:'Use até 60 planos por cena.'};
+    const clips=[],ids=new Set();
+    for(const c of input){
+      if(!c||typeof c.id!=='string'||!ID.test(c.id)||ids.has(c.id)||!['image','video'].includes(c.type)||typeof c.name!=='string'||c.name.length>200||!((ASSET.test(c.key||'')&&c.key.endsWith('-'+c.type))||(!c.key&&c.type==='image'&&/^assets\/[a-z0-9-]+\.svg$/.test(c.src||'')))||!Number.isFinite(c.duration)||c.duration<.08||c.duration>120||!Number.isFinite(c.start)||c.start<0||c.start>86400||!Object.hasOwn(TRANSITIONS,c.transition)||!['still','in','out','left','right'].includes(c.movement))return{error:'Revise os planos: mídia válida, duração entre 0,08 e 120 segundos e transição da biblioteca.'};
+      ids.add(c.id);clips.push({id:c.id,type:c.type,name:c.name,key:c.key||'',src:c.key?'':c.src,duration:c.duration,start:c.start,transition:c.transition,movement:c.movement});
+    }
+    if(clips.reduce((n,c)=>n+c.duration,0)>600)return{error:'A sequência pode ter até 10 minutos.'};
+    return{clips};
+  }
+  function frameAt(clips,time){
+    let offset=0;for(let i=0;i<clips.length;i++){const c=clips[i];if(time<offset+c.duration||i===clips.length-1)return{index:i,local:Math.max(0,Math.min(c.duration,time-offset)),offset};offset+=c.duration;}return null;
+  }
   function validateScenes(input=[],world){
     if(!Array.isArray(input)||input.length>40)return{error:'Use até 40 cenas neste protótipo.'};
     const ids=new Set(),scenes=[];
@@ -15,6 +29,7 @@
       for(const key of ['imageUrl','audioUrl']){scene[key]=url(item[key]);if(scene[key]===null)return{error:'Use um endereço HTTPS válido para a mídia.'};}
       for(const [key,type] of [['imageKey','image'],['audioKey','audio']]){scene[key]=item[key]||'';if(scene[key]&&(!ASSET.test(scene[key])||!scene[key].endsWith('-'+type)))return{error:'Referência de arquivo inválida.'};}
       for(const key of ['accent','sky']){if(!/^#[0-9a-f]{6}$/i.test(item[key]))return{error:'Escolha cores válidas para o ambiente.'};scene[key]=item[key];}
+      scene.mode=item.mode==='map'?'map':'scene';
       scene.setting=['forest-city','night-sky','mist'].includes(item.setting)?item.setting:'mist';
       scene.motion=item.motion!==false;scene.fog=item.fog!==false;
       scene.sound=item.sound==='none'?'none':'wind';
@@ -22,12 +37,24 @@
       scene.hotspots=[];const points=new Set();
       for(const point of item.hotspots){
         if(!point||typeof point.id!=='string')return{error:'Ponto de exploração inválido.'};
+        const destination=point.sceneId?input.find(s=>s?.id===point.sceneId):null;
         const entity=point.entityId?world.entities.find(e=>e.id===point.entityId):null;
-        if(!ID.test(point.id)||points.has(point.id)||typeof point.title!=='string'||!point.title.trim()||point.title.length>120||typeof point.body!=='string'||!point.body.trim()||point.body.length>4000||!stage(point.unlockChapter)||point.unlockChapter<scene.unlockChapter||![point.x,point.y].every(n=>Number.isFinite(n)&&n>=5&&n<=95)||(point.entityId&&!entity)||(entity&&point.unlockChapter<entity.unlockChapter))return{error:'Revise os pontos: posição entre 5 e 95%, texto e etapa compatível com a ficha vinculada.'};
-        points.add(point.id);scene.hotspots.push({id:point.id,title:point.title.trim(),body:point.body.trim(),x:point.x,y:point.y,unlockChapter:point.unlockChapter,entityId:point.entityId||''});
+        if(!ID.test(point.id)||points.has(point.id)||typeof point.title!=='string'||!point.title.trim()||point.title.length>120||typeof point.body!=='string'||!point.body.trim()||point.body.length>4000||!stage(point.unlockChapter)||point.unlockChapter<scene.unlockChapter||![point.x,point.y].every(n=>Number.isFinite(n)&&n>=5&&n<=95)||(point.entityId&&!entity)||(entity&&point.unlockChapter<entity.unlockChapter)||(point.sceneId&&(!destination||destination.id===scene.id||point.unlockChapter<destination.unlockChapter)))return{error:'Revise os pontos: posição entre 5 e 95%, texto e etapa compatível com a ficha vinculada.'};
+        points.add(point.id);scene.hotspots.push({id:point.id,title:point.title.trim(),body:point.body.trim(),x:point.x,y:point.y,unlockChapter:point.unlockChapter,entityId:point.entityId||'',sceneId:point.sceneId||''});
+      }
+      const timeline=validateTimeline(item.timeline);if(timeline.error)return timeline;scene.timeline=timeline.clips;
+      if(item.placements!==undefined&&!Array.isArray(item.placements))return{error:'Posições de cena inválidas.'};
+      scene.placements=[];const targets=new Set();
+      for(const p of item.placements||[]){
+        const chapter=world.chapters.find(c=>'chapter:'+c.id===p?.target),entity=world.entities.find(e=>'entity:'+e.id===p?.target);
+        if(scene.placements.length>=30||!p||targets.has(p.target)||!(p.target==='home'||chapter||entity)||!Number.isInteger(p.after)||p.after<0||p.after>10000||(!chapter&&p.after!==0)||(chapter&&p.after>(chapter.text||'').split(/\n\s*\n/).filter(Boolean).length))return{error:'Escolha uma posição existente para a cena e um parágrafo válido.'};
+        targets.add(p.target);scene.placements.push({target:p.target,after:p.after});
       }
       scenes.push(scene);
     }
+    const done=new Set(),visiting=new Set();
+    function cycle(id){if(visiting.has(id))return true;if(done.has(id))return false;visiting.add(id);const s=scenes.find(s=>s.id===id);for(const p of s.hotspots)if(p.sceneId&&cycle(p.sceneId))return true;visiting.delete(id);done.add(id);return false;}
+    if(scenes.some(s=>cycle(s.id)))return{error:'Os mapas devem avançar entre camadas sem formar ciclos. Use o caminho de volta para subir um nível.'};
     return{scenes};
   }
   function project(scene,completed){
@@ -36,6 +63,22 @@
     return{...scene,locked:false,hotspots:scene.hotspots.filter(p=>p.unlockChapter<=completed)};
   }
   function blankScene(id='scene-'+Date.now().toString(36)){return{id,title:'Nova cena',intro:'Escreva o convite para entrar neste lugar.',outro:'O que essa descoberta desperta? Convide o leitor a continuar a história.',unlockChapter:0,setting:'mist',accent:'#cdb681',sky:'#11232c',fog:true,motion:true,imageUrl:'',audioUrl:'',imageKey:'',audioKey:'',hotspots:[]};}
-  const api={validateScenes,project,blankScene,ASSET};
+  function mapCandidate(world,options){
+    const scenes=JSON.parse(JSON.stringify(world.scenes||[])),parent=options.parentId?scenes.find(s=>s.id===options.parentId&&s.mode==='map'):null;
+    if(options.parentId&&!parent)return{error:'Escolha o mapa que vai conter esta região.'};
+    let child=options.existingId?scenes.find(s=>s.id===options.existingId&&s.mode==='map'):null;
+    if(options.existingId&&!child)return{error:'O mapa escolhido não existe.'};
+    if(child&&!parent)return{error:'Escolha o mapa em que deseja inserir esta região.'};
+    if(!child){
+      child=blankScene(options.id);child.mode='map';child.title=options.title;child.intro=options.body||'Explore os lugares deste mapa.';child.outro='Continue a história para conhecer novos caminhos.';
+      child.fog=false;child.motion=false;child.sound='none';child.unlockChapter=Math.max(options.stage||0,parent?.unlockChapter||0);child.imageKey=options.imageKey||'';child.imageUrl=options.imageUrl||'';scenes.push(child);
+    }
+    if(parent){
+      if(parent.hotspots.some(p=>p.sceneId===child.id))return{error:'Este mapa já está dentro do mapa escolhido. Use Editar mapa para ajustar seu ponto.'};
+      parent.hotspots.push({id:options.pointId,title:child.title.slice(0,120),body:options.body||child.intro,x:50,y:50,unlockChapter:Math.max(parent.unlockChapter,child.unlockChapter,options.stage||0),entityId:'',sceneId:child.id});
+    }
+    const validated=validateScenes(scenes,world);return validated.error?validated:{scenes:validated.scenes,id:child.id,parentId:parent?.id||''};
+  }
+  const api={mapCandidate,validateScenes,validateTimeline,frameAt,TRANSITIONS,project,blankScene,ASSET};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else globalThis.LenoraScenes=api;
 })();

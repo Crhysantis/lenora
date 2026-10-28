@@ -35,7 +35,7 @@ test('published scene copies remain unchanged while editing a draft',()=>{
 });
 test('scene migration enriches an untouched canonical seed and preserves custom worlds',()=>{
   const old=W.clone(W.DEFAULT_WORLD);delete old.scenes;
-  assert.equal(W.migrateInitialWorld(old).scenes.length,1);
+  assert.equal(W.migrateInitialWorld(old).scenes.length,W.DEFAULT_WORLD.scenes.length);
   old.name='Nome escolhido pelo autor';assert.equal(W.migrateInitialWorld(old).scenes.length,0);
 });
 test('private media references require known types and safe keys',()=>{
@@ -46,4 +46,69 @@ test('private media references require known types and safe keys',()=>{
 test('world schema and scene renderer are reusable with another world identity',()=>{
   const world=W.clone(W.DEFAULT_WORLD);world.id='outro-universo';world.name='Um mundo do escritor';
   assert.equal(W.validateWorld(world).world.id,'outro-universo');
+});
+test('timeline keeps mixed media and rejects corrupt, unsafe and oversized sequences',()=>{
+  const clip={id:'first',type:'video',key:'world-123-video',name:'Vídeo',duration:2,start:1,transition:'dissolve',movement:'still'};
+  assert.equal(S.validateTimeline([clip]).clips[0].start,1);
+  assert.equal(S.validateTimeline([{...clip,type:'image',key:'world-123-image',duration:.125}]).clips[0].duration,.125);
+  for(const change of [c=>c.duration=0,c=>c.duration=Infinity,c=>c.start=-1,c=>c.key='world-123-audio',c=>c.transition='unknown',c=>c.movement='x']){const c={...clip};change(c);assert.ok(S.validateTimeline([c]).error);}
+  assert.ok(S.validateTimeline([null]).error);assert.ok(S.validateTimeline([clip,clip]).error);
+  assert.ok(S.validateTimeline(Array.from({length:61},(_,i)=>({...clip,id:'clip-'+i}))).error);
+  assert.ok(S.validateTimeline(Array.from({length:6},(_,i)=>({...clip,id:'clip-'+i,duration:120}))).error);
+  assert.ok(S.validateTimeline([{...clip,type:'image',key:'',src:'https://malicious.test/image.svg'}]).error);
+});
+test('camera timeline selects exact boundaries and holds its final frame',()=>{
+  const clips=[{duration:.125},{duration:2},{duration:1}];
+  assert.deepEqual(S.frameAt(clips,0),{index:0,local:0,offset:0});
+  assert.equal(S.frameAt(clips,.125).index,1);assert.equal(S.frameAt(clips,2.125).index,2);
+  assert.equal(S.frameAt(clips,100).local,1);assert.equal(S.frameAt([],0),null);
+});
+test('placements support home, exact book paragraphs and all kinds of entity',()=>{
+  const world=W.DEFAULT_WORLD,scene=structuredClone(world.scenes[0]);
+  scene.placements=[{target:'home',after:0},{target:'chapter:prologue',after:2},{target:'entity:gladish',after:0},{target:'entity:sahkiz',after:0}];
+  assert.equal(S.validateScenes([scene],world).scenes[0].placements.length,4);
+  for(const placement of [null,{target:'chapter:missing',after:0},{target:'entity:missing',after:0},{target:'home',after:1},{target:'chapter:prologue',after:10000},{target:'chapter:prologue',after:-1}]){scene.placements=[placement];assert.ok(S.validateScenes([scene],world).error);}
+  scene.placements=[{target:'home',after:0},{target:'home',after:0}];assert.ok(S.validateScenes([scene],world).error);
+});
+test('closed scenes conceal timeline assets and placements',()=>{
+  const scene=W.DEFAULT_WORLD.scenes[0];const result=JSON.stringify(S.project(scene,0));
+  assert.ok(!result.includes('assets/'));assert.ok(!result.includes('placements'));
+});
+test('previous exact scene seed gains the camera study; custom drafts are preserved',()=>{
+  const old=W.clone(W.DEFAULT_WORLD);old.scenes=old.scenes.slice(0,1);delete old.scenes[0].timeline;delete old.scenes[0].placements;
+  assert.equal(W.migrateInitialWorld(old).scenes[0].timeline.length,3);
+  old.scenes[0].intro='Minha própria narrativa';const upgraded=W.migrateInitialWorld(old);
+  assert.equal(upgraded.scenes[0].intro,old.scenes[0].intro);assert.equal(upgraded.scenes[0].timeline.length,0);
+});
+test('nested maps link world, forest, city and scene without leaking locked labels',()=>{
+  const world=W.validateWorld(W.DEFAULT_WORLD).world;
+  const map=world.scenes.find(s=>s.id==='mapa-ayiverni');
+  assert.equal(map.mode,'map');assert.equal(S.project(map,0).hotspots.length,0);
+  assert.ok(!JSON.stringify(S.project(map,1)).includes('Floresta Pentateeri'));
+  assert.equal(S.project(map,2).hotspots[0].sceneId,'mapa-pentateeri');
+  const forest=world.scenes.find(s=>s.id==='mapa-pentateeri');assert.equal(forest.hotspots[0].sceneId,'mapa-sahkiz');
+  assert.equal(world.scenes.find(s=>s.id==='mapa-sahkiz').hotspots[0].sceneId,'sahkiz-passarelas');
+});
+test('map destinations must exist, respect reading gates and form an acyclic graph',()=>{
+  for(const change of [w=>w.scenes[1].hotspots[0].sceneId='missing',w=>w.scenes[1].hotspots[0].unlockChapter=0,w=>w.scenes[2].hotspots[0].sceneId='mapa-ayiverni',w=>w.scenes[1].hotspots[0].sceneId='mapa-ayiverni']){
+    const world=W.clone(W.DEFAULT_WORLD);change(world);assert.ok(W.validateWorld(world).error);
+  }
+});
+test('guided map creation saves parent and child atomically without changing the input',()=>{
+  const world=W.validateWorld(W.DEFAULT_WORLD).world,before=JSON.stringify(world);
+  const result=S.mapCandidate(world,{id:'valley',pointId:'valley-point',title:'Vale',body:'O vale descrito pelo autor.',parentId:'mapa-pentateeri',stage:0});
+  assert.ok(!result.error);assert.equal(result.scenes.length,world.scenes.length+1);
+  const child=result.scenes.find(s=>s.id==='valley'),parent=result.scenes.find(s=>s.id==='mapa-pentateeri');
+  assert.equal(child.mode,'map');assert.equal(child.unlockChapter,2);assert.equal(parent.hotspots.at(-1).sceneId,'valley');assert.equal(parent.hotspots.at(-1).unlockChapter,2);
+  assert.equal(JSON.stringify(world),before);
+});
+test('guided map creation can create a root and reuse an existing map',()=>{
+  const world=W.validateWorld(W.DEFAULT_WORLD).world;
+  const result=S.mapCandidate(world,{id:'other-root',pointId:'unused',title:'Outra região',stage:0});assert.ok(!result.error);
+  const linked=S.mapCandidate({...world,scenes:result.scenes},{existingId:'mapa-pentateeri',parentId:'other-root',pointId:'forest-in-other',stage:0});
+  assert.equal(linked.scenes.length,result.scenes.length);assert.equal(linked.scenes.find(s=>s.id==='other-root').hotspots[0].sceneId,'mapa-pentateeri');
+});
+test('guided map creation rejects missing parents, duplicate links and cycles',()=>{
+  const world=W.validateWorld(W.DEFAULT_WORLD).world;
+  for(const options of [{parentId:'missing',title:'Place',id:'p',pointId:'pt'},{parentId:'mapa-ayiverni',existingId:'mapa-pentateeri',pointId:'pt'},{parentId:'mapa-sahkiz',existingId:'mapa-ayiverni',pointId:'pt'},{existingId:'mapa-pentateeri',pointId:'pt'}])assert.ok(S.mapCandidate(world,options).error);
 });

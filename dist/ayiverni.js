@@ -213,5 +213,21 @@ const data={
   },
   "source": "Textos do prólogo e do capítulo 1 fornecidos pelo autor nesta conversa. Navegação e chamada de publicação separadas do texto narrativo."
 };
+// Editable camera study based on the existing illustrative scene, not approved book art.
+data.world.scenes[0].timeline=[
+  {id:'sahkiz-wide',type:'image',name:'Sahkiz · visão ilustrativa',key:'',src:'assets/sahkiz-panorama.svg',duration:4,start:0,transition:'cut',movement:'in'},
+  {id:'sahkiz-walk',type:'image',name:'Entre os níveis · estudo de câmera',key:'',src:'assets/sahkiz-passarelas.svg',duration:3,start:0,transition:'dissolve',movement:'left'},
+  {id:'sahkiz-light',type:'image',name:'A luz dos reatores · estudo de câmera',key:'',src:'assets/sahkiz-luz.svg',duration:3,start:0,transition:'black',movement:'in'}
+];
+data.world.scenes[0].placements=[{target:'home',after:0},{target:'chapter:chapter-1',after:1},{target:'entity:sahkiz',after:0}];
+function mapLayer(id,title,stage,intro,hotspots){return{id,title,mode:'map',intro,outro:'Cada lugar guarda outras histórias. Continue pelo livro para ampliar seu horizonte.',unlockChapter:stage,setting:'mist',accent:'#cdb681',sky:'#11232c',fog:false,motion:false,sound:'none',imageUrl:'',audioUrl:'',imageKey:'',audioKey:'',hotspots,timeline:[],placements:[]};}
+data.world.scenes.push(
+  mapLayer('mapa-ayiverni','Ayîvernî · mapa do mundo',0,'Um mundo se abre em camadas. Este é um esquema de navegação: a cartografia será escolhida pelo autor. As regiões aparecem conforme a leitura avança.',[
+    {id:'pentateeri',title:'Floresta Pentateeri',body:'No capítulo 1, as copas roxas e verdes da floresta Pentateeri se estendem acima dos níveis de Sahkiz. Entre nesta camada para se aproximar da cidade.',x:50,y:50,unlockChapter:2,entityId:'pentateeri',sceneId:'mapa-pentateeri'}]),
+  mapLayer('mapa-pentateeri','Pentateeri · mapa da floresta',2,'Aproxime-se da floresta que envolve os níveis de Sahkiz. Este esquema mostra uma relação entre lugares, sem estabelecer fronteiras ou distâncias.',[
+    {id:'sahkiz',title:'Sahkiz',body:'Árvores atravessam a cidade de aço e cristal. Seus níveis, elevadores e passarelas aparecem na abertura da história. Toque novamente para entrar na cidade.',x:50,y:50,unlockChapter:2,entityId:'sahkiz',sceneId:'mapa-sahkiz'}]),
+  mapLayer('mapa-sahkiz','Sahkiz · mapa da cidade',2,'Uma cidade para conhecer mais de perto. Insira o mapa oficial da cidade para posicionar seus lugares; as posições deste esquema são apenas ilustrativas.',[
+    {id:'niveis',title:'Entre os níveis',body:'Aproxime-se dos troncos, das estruturas de aço e cristal e da luz verde dos reatores. Entre na cena para explorar os detalhes revelados pela leitura.',x:50,y:50,unlockChapter:2,entityId:'sahkiz',sceneId:'sahkiz-passarelas'}])
+);
 if(typeof module!=='undefined'&&module.exports)module.exports=data;else globalThis.AyiverniContent=data;
 })();
