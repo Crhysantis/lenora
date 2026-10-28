@@ -14,7 +14,7 @@ globalThis.LenoraCinema={
     const S=globalThis.LenoraScenes,total=clips.reduce((n,c)=>n+c.duration,0);
     let resources=[],ready=false,disposed=false,playing=false,time=0,raf=0,last=0,active=-1,recorder=null,stream=null,recording=false;
     host.innerHTML=`<div class="cinema-screen"><canvas width="1280" height="720" aria-label="Sequência visual criada pelo autor"></canvas><p class="cinema-state" role="status">Preparando sequência…</p></div><div class="cinema-controls"><button type="button" data-play disabled>Reproduzir</button><button type="button" data-restart disabled>Reiniciar</button><label class="sr-only">Posição da sequência</label><input aria-label="Posição da sequência" type="range" min="0" max="${total}" step="0.01" value="0" disabled><output>0.0 / ${total.toFixed(1)} s</output>${exportable?'<button type="button" data-export disabled>Exportar WebM sem áudio</button>':''}</div>`;
-    const canvas=host.querySelector('canvas'),ctx=canvas.getContext('2d'),state=host.querySelector('[role=status]'),play=host.querySelector('[data-play]'),slider=host.querySelector('input'),restart=host.querySelector('[data-restart]'),exportButton=host.querySelector('[data-export]');
+    const canvas=host.querySelector('canvas'),ctx=canvas.getContext('2d'),state=host.querySelector('[role=status]'),play=host.querySelector('[data-play]'),slider=host.querySelector('input'),restart=host.querySelector('[data-restart]'),exportButton=host.querySelector('[data-export]'),output=host.querySelector('output');
     function pause(){playing=false;cancelAnimationFrame(raf);resources.forEach(r=>{if(r?.tagName==='VIDEO')r.pause();});play.textContent='Reproduzir';if(recording)finish(false);}
     function finish(save){
       if(!recorder||recorder.state==='inactive')return;
@@ -42,7 +42,7 @@ globalThis.LenoraCinema={
         if(transition==='black'){if(mix<.5)draw(f.index-1,clips[f.index-1].duration,1-mix*2);else draw(f.index,f.local,(mix-.5)*2);}
         else{draw(f.index-1,clips[f.index-1].duration);draw(f.index,f.local,transition==='dissolve'?mix:1,transition==='slide'?1280*(1-mix):0,transition==='zoom'?1.25-.25*mix:1);}
       }else draw(f.index,f.local);
-      slider.value=time;host.querySelector('output').textContent=`${time.toFixed(1)} / ${total.toFixed(1)} s`;
+      slider.value=time;output.textContent=`${time.toFixed(1)} / ${total.toFixed(1)} s`;
     }
     function tick(now){if(!playing||disposed)return;time=Math.min(total,time+(now-last)/1000);last=now;render();if(time>=total){if(recording)finish(true);pause();return;}raf=requestAnimationFrame(tick);}
     function start(){if(time>=total)time=0;active=-1;playing=true;play.textContent='Pausar';last=performance.now();render();raf=requestAnimationFrame(tick);}
