@@ -41,3 +41,8 @@ test('a successful write request followed by aborted transaction is reported as 
   }};
   await assert.rejects(createMediaStore(indexedDB).put('scene',new Blob(['a'],{type:'image/png'})),/quota/);
 });
+test('video timeline uploads preserve MIME restrictions',()=>{
+  assert.equal(validFile('world-shot-video',new Blob(['video'],{type:'video/webm'})),true);
+  assert.equal(validFile('world-shot-video',new Blob(['sound'],{type:'audio/webm'})),false);
+  assert.equal(validFile('world-shot-image',new Blob(['video'],{type:'video/mp4'})),false);
+});

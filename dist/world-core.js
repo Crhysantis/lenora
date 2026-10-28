@@ -49,6 +49,14 @@
     const world=validateWorld(input).world;
     if(!world)return clone(DEFAULT_WORLD);
     const initial=DEFAULT_WORLD.entities[0];
+    // Only the exact earlier Sahkiz seed gains new cinematic/map examples.
+    // Personal text, placements, uploads, coordinates or additional scenes are preserved.
+    if(world.scenes.length===1&&world.scenes[0].id===DEFAULT_WORLD.scenes[0].id){
+      const baseline=validateWorld(DEFAULT_WORLD).world;
+      const strip=w=>({...w,scenes:w.scenes.slice(0,1).map(s=>({...s,timeline:[],placements:[]}))});
+      const hasNewMedia=world.scenes[0].timeline.length||world.scenes[0].placements.length;
+      if(!hasNewMedia&&JSON.stringify(strip(world))===JSON.stringify(strip(baseline)))return baseline;
+    }
     if(!Object.hasOwn(input,'scenes')){
       const baseline=validateWorld(DEFAULT_WORLD).world;
       if(JSON.stringify({...world,scenes:[]})===JSON.stringify({...baseline,scenes:[]}))return baseline;

@@ -59,3 +59,7 @@ Somente o prólogo e o capítulo 1 fornecidos pelo autor foram inseridos. O leit
 ## Cenas customizáveis
 
 A suíte tem 32 testes de lógica e 18 cenários de navegador. Os casos novos verificam projeção de cenas/pontos por etapa, URLs/cores/posições e vínculos inválidos, modelo reutilizável, rascunho separado, migração sem sobrescrever personalizações e chaves próprias de mídia. No navegador, há percurso por cenas, edição/publicação e recarga de imagem própria, criação de outro lugar, celular/redução de movimento e som apenas após consentimento com encerramento ao navegar.
+
+## Cinema e mapas
+
+Testes unitários cobrem montagem mista, limites, referências de arquivo, transições, posicionamento após parágrafos, migração sem substituir personalizações e grafos de mapas sem ciclos. A suíte Chromium inclui exportação e reimportação de WebM real, upload ordenado, falha de quota, publicação de posições, proteção de leitura, mapas em dois cliques, upload de cartografia e layout móvel com redução de movimento.

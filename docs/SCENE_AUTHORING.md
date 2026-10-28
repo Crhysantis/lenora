@@ -42,3 +42,21 @@ Não há som automático. O áudio escolhido substitui a demonstração de vento
 O editor é um protótipo de autoria local, dentro do site privado do autor. Não há cobrança, contas de compradores, permissões por papel, entrega segura de extras pagos ou verificação externa de leitura. O catálogo completo permanece no cliente e pode ser inspecionado tecnicamente.
 
 Para comercializar: persistência e mídia no servidor; projetos e contas separados; autorização do lado do servidor antes de entregar conteúdo; backups/versionamento; cotas e limpeza de arquivos; fluxo de publicação do autor; só então planos e venda de imersão. Esses itens são próximos marcos, não funcionalidades já entregues.
+
+## Montagem audiovisual
+
+Cada cena aceita `timeline` com planos `{id,type,name,key,src,duration,start,transition,movement}`. Mídias do autor usam chaves IndexedDB; `src` é reservado aos SVGs ilustrativos empacotados em `assets/`. Não se aceitam scripts, URLs arbitrárias ou caminhos de arquivo como origem de planos. A imagem de fundo e o áudio ambiental continuam independentes. No modo mapa, a imagem permanece fixa para manter a relação dos pontos com os lugares; a linha do tempo guardada só é exibida no modo cena.
+
+Durações de 0,08 a 120 segundos por plano, até 60 planos/10 minutos. O início recorta o trecho de vídeo, cuja extensão é verificada na prévia. A montagem conserva a ordem de seleção dos arquivos. Alterações nos planos entram na prévia ao clicar “Prévia e exportação”. O atalho stop motion ajusta só as imagens para 0,125 s e corte seco. Movimentos disponíveis: fixo, aproximar, afastar, esquerda e direita.
+
+Um único renderizador Canvas serve editor, leitura e exportação. Reprodução é manual, vídeos são silenciosos e a exportação não contém trilha sonora. O formato inicial de saída é WebM via MediaRecorder, em tempo real, sem conversão MP4 e sem renderização em servidor. Pausar, buscar ou sair da página/aba cancela a exportação; o arquivo só é entregue após concluir a sequência. Navegadores sem suporte apresentam aviso. Redução de movimento suprime movimentos de câmera; a leitura não inicia vídeos automaticamente.
+
+`placements` permite home, ficha (`entity:id`) ou capítulo (`chapter:id`) com `after=0` no início ou número de parágrafo. A posição é numérica; reescrever capítulos pode exigir reposicionar cenas. A validação rejeita parágrafos inexistentes. Não há limite do recurso a personagens ou lugares: todas as categorias de ficha usam o mesmo bloco.
+
+## Mapas em camadas
+
+O tipo `mode=map` usa imagem importada ou HTTPS e pontos com destino `sceneId`. O mapa de destino deve ser criado e salvo antes de vinculá-lo. O ponto pode combinar ficha e destino. Primeiro clique/toque mostra informações; segundo no mesmo ponto entra no destino. Um botão explícito oferece a mesma ação por teclado. O caminho de navegação permite voltar aos níveis superiores.
+
+O grafo é validado: destinos existentes, sem autorreferência/ciclos, e etapa do ponto compatível com o destino e a ficha. Camadas/pontos bloqueados não têm títulos ou conteúdo projetados na interface. O exemplo de Ayîvernî é um esquema de relações, não uma cartografia aprovada. O autor controla suas imagens e posições percentuais.
+
+As configurações antigas só recebem exemplos novos quando correspondem exatamente ao seed anterior sem customizações. Mundos personalizados conservam seu conteúdo; eles podem criar mapas e sequências no editor.
