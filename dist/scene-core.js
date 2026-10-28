@@ -8,7 +8,7 @@
     const ids=new Set(),scenes=[];
     const stage=n=>Number.isInteger(n)&&n>=0&&n<=world.chapters.length;
     for(const item of input){
-      if(!item||!ID.test(item.id)||ids.has(item.id)||typeof item.title!=='string'||!item.title.trim()||item.title.length>160||!stage(item.unlockChapter))return{error:'Revise o nome e a etapa de abertura da cena.'};
+      if(!item||typeof item.id!=='string'||!ID.test(item.id)||ids.has(item.id)||typeof item.title!=='string'||!item.title.trim()||item.title.length>160||!stage(item.unlockChapter))return{error:'Revise o nome e a etapa de abertura da cena.'};
       ids.add(item.id);
       const scene={id:item.id,title:item.title.trim(),unlockChapter:item.unlockChapter};
       for(const key of ['intro','outro']){if(typeof item[key]!=='string'||item[key].length>4000)return{error:'Use até 4 mil caracteres por texto de cena.'};scene[key]=item[key].trim();}
@@ -21,6 +21,7 @@
       if(!Array.isArray(item.hotspots)||item.hotspots.length>16)return{error:'Use até 16 pontos de exploração por cena.'};
       scene.hotspots=[];const points=new Set();
       for(const point of item.hotspots){
+        if(!point||typeof point.id!=='string')return{error:'Ponto de exploração inválido.'};
         const entity=point.entityId?world.entities.find(e=>e.id===point.entityId):null;
         if(!ID.test(point.id)||points.has(point.id)||typeof point.title!=='string'||!point.title.trim()||point.title.length>120||typeof point.body!=='string'||!point.body.trim()||point.body.length>4000||!stage(point.unlockChapter)||point.unlockChapter<scene.unlockChapter||![point.x,point.y].every(n=>Number.isFinite(n)&&n>=5&&n<=95)||(point.entityId&&!entity)||(entity&&point.unlockChapter<entity.unlockChapter))return{error:'Revise os pontos: posição entre 5 e 95%, texto e etapa compatível com a ficha vinculada.'};
         points.add(point.id);scene.hotspots.push({id:point.id,title:point.title.trim(),body:point.body.trim(),x:point.x,y:point.y,unlockChapter:point.unlockChapter,entityId:point.entityId||''});

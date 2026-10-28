@@ -34,7 +34,7 @@
       }
       world.entities.push({id:e.id,kind:e.kind,title:e.title.trim(),body:e.body.trim(),unlockChapter:e.unlockChapter,layers:layers.sort((a,b)=>a.chapter-b.chapter)});
     }
-    const result=S.validateScenes(input.scenes||[],world);if(result.error)return result;
+    const result=S.validateScenes(input.scenes===undefined?[]:input.scenes,world);if(result.error)return result;
     world.scenes=result.scenes;
     return{world};
   }

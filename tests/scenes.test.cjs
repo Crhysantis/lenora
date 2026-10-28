@@ -16,6 +16,8 @@ test('scene schema validates links, colors, positions and relationships',()=>{
   for(const change of [s=>s.imageUrl='javascript:alert(1)',s=>s.accent='red;display:none',s=>s.hotspots[0].x=101,s=>s.hotspots[0].entityId='missing',s=>s.hotspots[0].unlockChapter=0]){
     const scene=structuredClone(world.scenes[0]);change(scene);assert.ok(S.validateScenes([scene],world).error);
   }
+  const malformed=structuredClone(world.scenes[0]);malformed.hotspots=[null];assert.ok(S.validateScenes([malformed],world).error);
+  delete malformed.id;assert.ok(S.validateScenes([malformed],world).error);
 });
 test('linking a later entity requires the corresponding reading stage',()=>{
   const scene=structuredClone(W.DEFAULT_WORLD.scenes[0]);scene.hotspots[0].entityId='gaari';

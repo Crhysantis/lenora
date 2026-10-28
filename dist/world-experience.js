@@ -115,6 +115,7 @@ globalThis.createWorldExperience=function({storage,toast,showModal,esc,getAsset,
       $('#cancelEntity').hidden=false;form.elements.title.focus();
     });
     document.querySelectorAll('[data-remove-entity]').forEach(button=>button.onclick=()=>{
+      if((draft.scenes||[]).some(scene=>scene.hotspots.some(point=>point.entityId===button.dataset.removeEntity)))return toast('Esta ficha está vinculada a uma cena. Remova o vínculo no editor visual antes de excluir a ficha.');
       draft.entities=draft.entities.filter(e=>e.id!==button.dataset.removeEntity);editing=null;
       if(saveWorldDraft()){studio();toast('Descoberta removida do rascunho. Publique para atualizar o atlas.');}
     });
