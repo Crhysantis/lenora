@@ -63,6 +63,22 @@
     return{...scene,locked:false,hotspots:scene.hotspots.filter(p=>p.unlockChapter<=completed)};
   }
   function blankScene(id='scene-'+Date.now().toString(36)){return{id,title:'Nova cena',intro:'Escreva o convite para entrar neste lugar.',outro:'O que essa descoberta desperta? Convide o leitor a continuar a história.',unlockChapter:0,setting:'mist',accent:'#cdb681',sky:'#11232c',fog:true,motion:true,imageUrl:'',audioUrl:'',imageKey:'',audioKey:'',hotspots:[]};}
-  const api={validateScenes,validateTimeline,frameAt,TRANSITIONS,project,blankScene,ASSET};
+  function mapCandidate(world,options){
+    const scenes=JSON.parse(JSON.stringify(world.scenes||[])),parent=options.parentId?scenes.find(s=>s.id===options.parentId&&s.mode==='map'):null;
+    if(options.parentId&&!parent)return{error:'Escolha o mapa que vai conter esta região.'};
+    let child=options.existingId?scenes.find(s=>s.id===options.existingId&&s.mode==='map'):null;
+    if(options.existingId&&!child)return{error:'O mapa escolhido não existe.'};
+    if(child&&!parent)return{error:'Escolha o mapa em que deseja inserir esta região.'};
+    if(!child){
+      child=blankScene(options.id);child.mode='map';child.title=options.title;child.intro=options.body||'Explore os lugares deste mapa.';child.outro='Continue a história para conhecer novos caminhos.';
+      child.fog=false;child.motion=false;child.sound='none';child.unlockChapter=Math.max(options.stage||0,parent?.unlockChapter||0);child.imageKey=options.imageKey||'';child.imageUrl=options.imageUrl||'';scenes.push(child);
+    }
+    if(parent){
+      if(parent.hotspots.some(p=>p.sceneId===child.id))return{error:'Este mapa já está dentro do mapa escolhido. Use Editar mapa para ajustar seu ponto.'};
+      parent.hotspots.push({id:options.pointId,title:child.title.slice(0,120),body:options.body||child.intro,x:50,y:50,unlockChapter:Math.max(parent.unlockChapter,child.unlockChapter,options.stage||0),entityId:'',sceneId:child.id});
+    }
+    const validated=validateScenes(scenes,world);return validated.error?validated:{scenes:validated.scenes,id:child.id,parentId:parent?.id||''};
+  }
+  const api={mapCandidate,validateScenes,validateTimeline,frameAt,TRANSITIONS,project,blankScene,ASSET};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else globalThis.LenoraScenes=api;
 })();

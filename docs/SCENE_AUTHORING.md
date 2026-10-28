@@ -60,3 +60,7 @@ O tipo `mode=map` usa imagem importada ou HTTPS e pontos com destino `sceneId`. 
 O grafo é validado: destinos existentes, sem autorreferência/ciclos, e etapa do ponto compatível com o destino e a ficha. Camadas/pontos bloqueados não têm títulos ou conteúdo projetados na interface. O exemplo de Ayîvernî é um esquema de relações, não uma cartografia aprovada. O autor controla suas imagens e posições percentuais.
 
 As configurações antigas só recebem exemplos novos quando correspondem exatamente ao seed anterior sem customizações. Mundos personalizados conservam seu conteúdo; eles podem criar mapas e sequências no editor.
+
+## Entrada direta para mapas
+
+O Estúdio de mundos oferece “Mapas · criar e organizar regiões” (`#maps-studio`). A árvore mostra todos os mapas do rascunho, inclusive os ainda fechados para leitores. Cada item tem “Editar mapa” e “Adicionar região dentro”. O formulário cria o novo mapa e seu ponto no mapa de origem numa única gravação; também permite aproveitar um mapa existente, rejeitando duplicatas e ciclos. A região recebe uma etapa compatível com o mapa que a contém. Imagens podem ser enviadas na criação ou no editor direto (`#map-editor/id`). O ponto inicial fica no centro e pode ser reposicionado no mapa de origem.

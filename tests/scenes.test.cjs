@@ -94,3 +94,21 @@ test('map destinations must exist, respect reading gates and form an acyclic gra
     const world=W.clone(W.DEFAULT_WORLD);change(world);assert.ok(W.validateWorld(world).error);
   }
 });
+test('guided map creation saves parent and child atomically without changing the input',()=>{
+  const world=W.validateWorld(W.DEFAULT_WORLD).world,before=JSON.stringify(world);
+  const result=S.mapCandidate(world,{id:'valley',pointId:'valley-point',title:'Vale',body:'O vale descrito pelo autor.',parentId:'mapa-pentateeri',stage:0});
+  assert.ok(!result.error);assert.equal(result.scenes.length,world.scenes.length+1);
+  const child=result.scenes.find(s=>s.id==='valley'),parent=result.scenes.find(s=>s.id==='mapa-pentateeri');
+  assert.equal(child.mode,'map');assert.equal(child.unlockChapter,2);assert.equal(parent.hotspots.at(-1).sceneId,'valley');assert.equal(parent.hotspots.at(-1).unlockChapter,2);
+  assert.equal(JSON.stringify(world),before);
+});
+test('guided map creation can create a root and reuse an existing map',()=>{
+  const world=W.validateWorld(W.DEFAULT_WORLD).world;
+  const result=S.mapCandidate(world,{id:'other-root',pointId:'unused',title:'Outra região',stage:0});assert.ok(!result.error);
+  const linked=S.mapCandidate({...world,scenes:result.scenes},{existingId:'mapa-pentateeri',parentId:'other-root',pointId:'forest-in-other',stage:0});
+  assert.equal(linked.scenes.length,result.scenes.length);assert.equal(linked.scenes.find(s=>s.id==='other-root').hotspots[0].sceneId,'mapa-pentateeri');
+});
+test('guided map creation rejects missing parents, duplicate links and cycles',()=>{
+  const world=W.validateWorld(W.DEFAULT_WORLD).world;
+  for(const options of [{parentId:'missing',title:'Place',id:'p',pointId:'pt'},{parentId:'mapa-ayiverni',existingId:'mapa-pentateeri',pointId:'pt'},{parentId:'mapa-sahkiz',existingId:'mapa-ayiverni',pointId:'pt'},{existingId:'mapa-pentateeri',pointId:'pt'}])assert.ok(S.mapCandidate(world,options).error);
+});

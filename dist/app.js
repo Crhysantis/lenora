@@ -9,7 +9,7 @@ let mediaBusy=false,mediaLoadFailed=false;
 let draft=C.validateDraft(storage.get('draft',C.DEFAULT_DRAFT)).draft||{...C.DEFAULT_DRAFT};
 let prefs=C.normalizePrefs(storage.get('prefs',C.DEFAULT_PREFS));
 let saved=Boolean(storage.get('library',false)),page=Math.max(0,Number(storage.get('progress',0))||0);
-let routeName='',dirty=false,observer=null,readerEpoch=0,dwellTimers=new Set(),toastTimer,hoverTimer;
+let routeName='',lastAuthorHash='',dirty=false,observer=null,readerEpoch=0,dwellTimers=new Set(),toastTimer,hoverTimer;
 let enabled=false,audioContext=null,track=null,zone=-1,voices=new Set(),effects=new Set(),media={};
 const sceneSeen=new Set(),effectSeen=new Set();
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),4000);}
@@ -313,20 +313,21 @@ function saveDraft(){
 function renderRoute(){
   const requested=location.hash.slice(1);
   if(requested==='content'){ $('#content').focus(); return; }
+  const mapId=requested.startsWith('map-editor/')?requested.slice(11):requested.startsWith('maps-studio/')?requested.slice(12):null;
   const chapterId=requested.startsWith('chapter/')?requested.slice(8):null;
   const sceneId=requested.startsWith('scene/')?requested.slice(6):null;
-  const next=chapterId?'chapter':sceneId?'scene':['home','atlas','journey','world-studio','scene-studio','scenes','reading-demo','library','reader','studio'].includes(requested)?requested:'home';
-  if(worldExperience.isBusy()){history.replaceState(null,'','#scene-studio');toast('Aguarde o arquivo terminar de salvar.');return;}
-  if(['world-studio','scene-studio'].includes(routeName)&&worldExperience.hasUnsaved()&&!confirm('Sair sem salvar as alterações do mundo?')){history.replaceState(null,'','#'+routeName);return;}
+  const next=mapId?(requested.startsWith('map-editor/')?'map-editor':'maps-studio'):chapterId?'chapter':sceneId?'scene':['home','atlas','journey','world-studio','scene-studio','maps-studio','scenes','reading-demo','library','reader','studio'].includes(requested)?requested:'home';
+  if(worldExperience.isBusy()){history.replaceState(null,'',lastAuthorHash||'#scene-studio');toast('Aguarde o arquivo terminar de salvar.');return;}
+  if(['world-studio','scene-studio','maps-studio','map-editor'].includes(routeName)&&worldExperience.hasUnsaved()&&!confirm('Sair sem salvar as alterações do mundo?')){history.replaceState(null,'',lastAuthorHash||'#'+routeName);return;}
   if(routeName==='studio'&&mediaBusy&&next!=='studio'){history.replaceState(null,'','#studio');toast('Aguarde o arquivo terminar de salvar.');return;}
   if(routeName==='studio'&&dirty&&next!=='studio'&&!confirm('Sair sem salvar as alterações do texto?')){history.replaceState(null,'','#studio');return;}
-  dirty=false;worldExperience.stopMedia();cleanupReader();if($('#modal').open)$('#modal').close();routeName=next;
+  dirty=false;worldExperience.stopMedia();cleanupReader();if($('#modal').open)$('#modal').close();routeName=next;if(['world-studio','scene-studio','maps-studio','map-editor'].includes(next))lastAuthorHash='#'+requested;
   document.body.classList.remove('reader-night');
-  const worldRoutes=['home','atlas','journey','world-studio','chapter','scenes','scene','scene-studio'];
+  const worldRoutes=['home','atlas','journey','world-studio','chapter','scenes','scene','scene-studio','maps-studio','map-editor'];
   document.body.classList.toggle('world-mode',worldRoutes.includes(next));
-  const activeRoute=next==='chapter'?'journey':next==='scene'?'scenes':next==='scene-studio'?'world-studio':next;
+  const activeRoute=next==='chapter'?'journey':next==='scene'?'scenes':['scene-studio','maps-studio','map-editor'].includes(next)?'world-studio':next;
   document.querySelectorAll('[data-nav]').forEach(a=>{a.classList.toggle('active',a.dataset.nav===activeRoute);if(a.dataset.nav===activeRoute)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-  if(worldRoutes.includes(next))worldExperience.render(next,chapterId||sceneId);
+  if(worldRoutes.includes(next))worldExperience.render(next,chapterId||sceneId||mapId);
   else if(next==='reader')reader();else if(next==='studio')studio();else if(next==='library')library();else home();
   if(next!=='reader')window.scrollTo(0,0);
 }
